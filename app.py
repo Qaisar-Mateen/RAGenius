@@ -6,39 +6,38 @@ st.set_page_config(page_icon="🧑‍🏫", layout="wide", page_title="RAGenius"
 
 st.markdown("""
 <style>
-
 .thinking-container {
     max-height: 300px;
     overflow-y: auto;
     border-radius: 0.5rem;
     padding: 1rem;
 }
+</style>
 """, unsafe_allow_html=True)
 
 def main():
 
-    st.subheader("Groq Chat Streamlit App", divider="rainbow", anchor=False)
-
+    # st.subheader("RAGenius: Smart Answers for Smarter Learning.", divider="rainbow", anchor=False)
+    st.markdown("<h4><span style='font-weight: 900; font-size:2rem; color: #FF4B4B;'>RAGenius:</span> Smart Answers for Smarter Learning.</h3>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 3px; background: linear-gradient(90deg, red, orange, yellow);'></div>", unsafe_allow_html=True)
     client = Groq(
         api_key=st.secrets["GROQ_API_KEY"],
     )
 
-    # Initialize chat history and selected model
     if "messages" not in st.session_state:
         st.session_state.messages = []
-
-    if "selected_model" not in st.session_state:
-        st.session_state.selected_model = None
 
     # Display chat messages from history on app rerun
     for message in st.session_state.messages:
         avatar = '🤖' if message["role"] == "assistant" else '👨‍💻'
         with st.chat_message(message["role"], avatar=avatar):
-            st.markdown(message["content"])
-            if message.get("thinking"):
+            # For assistant messages, show thinking first then content
+            if message["role"] == "assistant" and message.get("thinking"):
                 with st.expander("See thinking process", expanded=False):
                     st.markdown(f'<div class="thinking-container">{message["thinking"]}</div>', unsafe_allow_html=True)
-
+            
+            # Display the message content
+            st.markdown(message["content"])
 
     if prompt := st.chat_input("Enter your prompt here..."):
         # Create a container at the top to maintain scroll position
@@ -69,9 +68,11 @@ def main():
 
             # Stream the response and handle thinking parts
             with st.chat_message("assistant", avatar="🤖"):
-                with st.expander("See thinking process", expanded=False) as thinking_expander:
-                    thinking_container = st.empty()
+                # First create elements for thinking content
+                thinking_expander = st.expander("See thinking process", expanded=False)
+                thinking_container = thinking_expander.empty()
                 
+                # Then create element for response content
                 response_container = st.empty()
                 
                 full_content = ""
