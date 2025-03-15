@@ -6,23 +6,13 @@ st.set_page_config(page_icon="🧑‍🏫", layout="wide", page_title="RAGenius"
 
 st.markdown("""
 <style>
-/* Light theme (default) */
+
 .thinking-container {
     max-height: 300px;
     overflow-y: auto;
-    border: 1px solid #f0f2f6;
     border-radius: 0.5rem;
     padding: 1rem;
-    background-color: #f8f9fa;
 }
-
-/* Dark theme */
-[data-theme="dark"] .thinking-container {
-    border: 1px solid #333;
-    background-color: #262730;
-    color: #fff;
-}
-</style>
 """, unsafe_allow_html=True)
 
 def main():
@@ -110,7 +100,6 @@ def main():
             "thinking": thinking_content if thinking_content else None
         })
         
-        # Ensure the page stays at the current position
         scroll_anchor.markdown("")
             
 if __name__ == "__main__":
