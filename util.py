@@ -33,6 +33,7 @@ def stream_Chat(chat_completion) -> Generator[tuple, None, None]:
     previous_thinking = None
     current_content = ""
     previous_content = ""
+    in_thinking_section = False
     
     for chunk in chat_completion:
         if not chunk.choices[0].delta.content:
@@ -42,39 +43,40 @@ def stream_Chat(chat_completion) -> Generator[tuple, None, None]:
         chunk_text = chunk.choices[0].delta.content
         full_text += chunk_text
         
-        # Extract thinking part if present
-        think_pattern = r'<think>.*?</think>'
-        think_matches = re.findall(think_pattern, full_text, re.DOTALL)
+        # More efficient handling of thinking sections
+        think_start = full_text.find("<think>") 
+        think_end = full_text.find("</think>")
         
-        if think_matches:
-            # Get the last complete thinking block
-            last_think = think_matches[-1]
-            current_thinking = last_think[7:-8].strip()  # Remove <think> and </think> tags
+        # Complete thinking section found
+        if think_start >= 0 and think_end > think_start:
+            in_thinking_section = False
+            current_thinking = full_text[think_start+7:think_end].strip()
             
-            # Remove all thinking blocks from content
-            current_content = re.sub(think_pattern, '', full_text, flags=re.DOTALL).strip()
-        else:
-            # Check if we have a partial thinking section in progress
-            think_start = full_text.find("<think>")
-            if think_start >= 0:
-                # We have a thinking section in progress
-                current_content = full_text[:think_start].strip()
-                # Extract only the thinking part
-                current_thinking = full_text[think_start+7:].strip()
-            else:
-                # No thinking section
-                current_content = full_text.strip()
-                current_thinking = None
+            # Get content before and after thinking section
+            before_thinking = full_text[:think_start].strip()
+            after_thinking = full_text[think_end+8:].strip()
+            current_content = before_thinking + " " + after_thinking if before_thinking and after_thinking else before_thinking + after_thinking
+            
+            # Remove processed thinking section from full_text
+            full_text = full_text[:think_start] + full_text[think_end+8:]
+            
+        # Partial thinking section (started but not completed)
+        elif think_start >= 0:
+            in_thinking_section = True
+            current_thinking = full_text[think_start+7:].strip()
+            current_content = full_text[:think_start].strip()
+        # No thinking section
+        elif not in_thinking_section:
+            current_content = full_text.strip()
+            current_thinking = None
         
         # Add a small delay for slower generation
         time.sleep(0.05)
         
-        # Yield if either thinking content or regular content has changed
+        # Only yield if content has changed to avoid redundant updates
         if (current_thinking != previous_thinking) or (current_content != previous_content):
             previous_thinking = current_thinking
             previous_content = current_content
-            
-            print(f"Debug - Content: '{current_content}', Thinking: '{current_thinking}'")  # Debug print
             
             yield {
                 "thinking": current_thinking,

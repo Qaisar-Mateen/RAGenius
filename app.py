@@ -1,10 +1,15 @@
 import streamlit as st
 from util import *
 from groq import Groq
+import logging
 
+# Configure logging for better debugging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Set up page configuration once
 st.set_page_config(page_icon="🧑‍🏫", layout="wide", page_title="RAGenius")
 
-# Enhanced CSS to force expanders to be closed by default
+# CSS optimizations - using a separate file would be even better for larger projects
 st.markdown("""
 <style>
 .thinking-container {
@@ -14,131 +19,182 @@ st.markdown("""
     padding: 1rem;
 }
 
-/* Force expanders to be closed by default */
 .streamlit-expanderHeader {
     background-color: transparent !important;
+}
+
+/* Optimized animations */
+@keyframes shimmer {
+    0% { background-position: -100% 0; }
+    100% { background-position: 100% 0; }
+}
+
+.thinking-indicator {
+    display: inline-block;
+    font-weight: bold;
+    position: relative;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.thinking-indicator span {
+    background: linear-gradient(90deg, #FF4B4B, #FFA500, #FF4B4B);
+    background-size: 200% auto;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes dots {
+    0% { content: "."; }
+    33% { content: ".."; }
+    66% { content: "..."; }
+}
+
+.thinking-dots::after {
+    content: ".";
+    animation: dots 1.2s infinite steps(1);
 }
 </style>
 """, unsafe_allow_html=True)
 
-def main():
+# Cache API key to avoid repeated lookups
+@st.cache_resource
+def get_client():
+    return Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-    # st.subheader("RAGenius: Smart Answers for Smarter Learning.", divider="rainbow", anchor=False)
+def main():
+    # App header with brand styling
     st.markdown("<h4><span style='font-weight: 900; font-size:2rem; color: #FF4B4B;'>RAGenius:</span> Smart Answers for Smarter Learning.</h3>", unsafe_allow_html=True)
     st.markdown("<div style='height: 3px; background: linear-gradient(90deg, red, orange, yellow);'></div>", unsafe_allow_html=True)
-    client = Groq(
-        api_key=st.secrets["GROQ_API_KEY"],
-    )
+    
+    # Get cached client
+    client = get_client()
 
-    # Initialize message history and expander states
+    # Initialize session state variables
     if "messages" not in st.session_state:
         st.session_state.messages = []
     
-    # Initialize expander states dictionary to track which expanders are open
     if "expander_states" not in st.session_state:
         st.session_state.expander_states = {}
 
-    # Display chat messages from history on app rerun
+    # Display chat history
+    display_chat_history()
+
+    # Handle new user input
+    if prompt := st.chat_input("Enter your prompt here..."):
+        handle_user_input(prompt, client)
+
+def display_chat_history():
+    """Display existing chat messages from history."""
     for i, message in enumerate(st.session_state.messages):
         avatar = '🤖' if message["role"] == "assistant" else '👨‍💻'
         with st.chat_message(message["role"], avatar=avatar):
-            # For assistant messages, show thinking first then content
             if message["role"] == "assistant" and message.get("thinking"):
-                # Create a unique key for each expander
                 expander_key = f"thinking_{i}"
-                # Default to closed unless explicitly opened by user
                 is_expanded = st.session_state.expander_states.get(expander_key, False)
                 
                 with st.expander("See thinking process", expanded=is_expanded):
                     st.markdown(f'<div class="thinking-container">{message["thinking"]}</div>', unsafe_allow_html=True)
             
-            # Display the message content
             st.markdown(message["content"])
 
-    if prompt := st.chat_input("Enter your prompt here..."):
-        # Create a container at the top to maintain scroll position
-        scroll_anchor = st.empty()
+def handle_user_input(prompt, client):
+    """Process user input and generate response."""
+    # Add user message to history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    
+    # Display user message
+    with st.chat_message("user", avatar='👨‍💻'):
+        st.markdown(prompt)
+    
+    # Keep track of top of screen
+    scroll_anchor = st.empty()
+    
+    # Initialize response variables
+    full_content = ""
+    final_thinking_content = ""
+    
+    try:
+        # Prepare filtered messages for API
+        filtered_messages = [
+            {"role": m["role"], "content": remove_thinking(m["content"])}
+            for m in st.session_state.messages
+        ]
         
-        st.session_state.messages.append({"role": "user", "content": prompt})
-
-        with st.chat_message("user", avatar='👨‍💻'):
-            st.markdown(prompt)
-
-        full_content = ""
-        final_thinking_content = ""
+        # Create API request with optimized parameters
+        chat_completion = client.chat.completions.create(
+            model='qwen-qwq-32b',
+            messages=filtered_messages,
+            max_completion_tokens=128000,
+            stream=True
+        )
         
-        # Fetch response from Groq API
-        try:
-            # Filter out thinking parts before sending messages to API
-            filtered_messages = [
-                {
-                    "role": m["role"],
-                    "content": remove_thinking(m["content"])
-                }
-                for m in st.session_state.messages
-            ]
-            
-            chat_completion = client.chat.completions.create(
-                model='qwen-qwq-32b',
-                messages=filtered_messages,
-                max_completion_tokens=128000,
-                stream=True
-            )
-
-            # Stream the response and handle thinking parts
-            with st.chat_message("assistant", avatar="🤖"):
-                # Create a debug container at the top (hidden in production)
-                debug_container = st.empty()
-                
-                # First create the thinking expander at the top
-                thinking_expander = st.expander("See thinking process", expanded=False)
-                with thinking_expander:
-                    thinking_container = st.empty()
-                
-                # Then create a separate container for the actual response
-                response_placeholder = st.empty()
-                
-                chunk_count = 0
-                
-                for chunk_data in stream_Chat(chat_completion):
-                    chunk_count += 1
-                    content = chunk_data.get("content", "")
-                    thinking = chunk_data.get("thinking")
-                    
-                    # Always update full_content if we have content
-                    if content and content.strip():
-                        full_content = content
-                        # Display the content
-                        response_placeholder.markdown(full_content)
-                        
-                    # Display thinking content if available
-                    if thinking:
-                        final_thinking_content = thinking
-                        thinking_container.markdown(f'<div class="thinking-container">{thinking}</div>', unsafe_allow_html=True)
-                    
-                    # Show debug info (can be commented out in production)
-                    debug_container.markdown(f"Chunk #{chunk_count} - Content length: {len(content) if content else 0}, Thinking: {'Yes' if thinking else 'No'}")
-                
-                # Display a message if no content was received
-                if not full_content:
-                    response_placeholder.markdown("*No response content was generated.*")
-                    debug_container.markdown(f"⚠️ No content received after {chunk_count} chunks")
-                else:
-                    debug_container.markdown(f"✅ Received {chunk_count} chunks. Final content length: {len(full_content)}")
-                
-        except Exception as e:
-            st.error(f"Error: {str(e)}", icon="🚨")
-            import traceback
-            st.error(traceback.format_exc())
-
-        # Append the full response to session_state.messages with thinking part
+        # Process streaming response
+        process_streaming_response(chat_completion, full_content, final_thinking_content)
+        
+    except Exception as e:
+        logging.error(f"Error in chat completion: {str(e)}", exc_info=True)
+        st.error(f"Error: {str(e)}", icon="🚨")
+    
+    # Add assistant response to history
+    if full_content or final_thinking_content:  # Only add if we have content
         st.session_state.messages.append({
             "role": "assistant", 
             "content": full_content,
             "thinking": final_thinking_content if final_thinking_content else None
         })
+    
+    # Maintain scroll position
+    scroll_anchor.markdown("")
+
+def process_streaming_response(chat_completion, full_content, final_thinking_content):
+    """Process streaming response from API with optimized rendering."""
+    with st.chat_message("assistant", avatar="🤖"):
+        # Set up UI containers
+        thinking_indicator = st.empty()
+        thinking_expander = st.expander("See thinking process", expanded=False)
         
-        scroll_anchor.markdown("")
+        with thinking_expander:
+            thinking_container = st.empty()
+        
+        response_placeholder = st.empty()
+        
+        is_thinking = False
+        
+        # Process each chunk from the stream
+        for chunk_data in stream_Chat(chat_completion):
+            content = chunk_data.get("content", "")
+            thinking = chunk_data.get("thinking")
             
+            # Handle thinking mode
+            if thinking:
+                if not is_thinking:  # Only set indicator when first entering thinking mode
+                    is_thinking = True
+                    thinking_indicator.markdown(
+                        '<div class="thinking-indicator"><span>Thinking</span><span class="thinking-dots"></span></div>', 
+                        unsafe_allow_html=True
+                    )
+                
+                final_thinking_content = thinking
+                thinking_container.markdown(f'<div class="thinking-container">{thinking}</div>', unsafe_allow_html=True)
+            elif is_thinking and not thinking:
+                is_thinking = False
+                thinking_indicator.empty()
+            
+            # Update content if available
+            if content and content.strip():
+                full_content = content
+                response_placeholder.markdown(full_content)
+        
+        # Clear thinking indicator when done
+        thinking_indicator.empty()
+        
+        # Handle no content case
+        if not full_content:
+            response_placeholder.markdown("*No response content was generated.*")
+
 if __name__ == "__main__":
     main()
