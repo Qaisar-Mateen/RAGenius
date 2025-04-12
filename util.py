@@ -32,6 +32,7 @@ def stream_Chat(chat_completion) -> Generator[tuple, None, None]:
     current_thinking = None
     previous_thinking = None
     current_content = ""
+    previous_content = ""
     
     for chunk in chat_completion:
         if not chunk.choices[0].delta.content:
@@ -68,9 +69,13 @@ def stream_Chat(chat_completion) -> Generator[tuple, None, None]:
         # Add a small delay for slower generation
         time.sleep(0.05)
         
-        # Only yield if thinking content has changed to avoid repetition
-        if current_thinking != previous_thinking or current_thinking is None:
+        # Yield if either thinking content or regular content has changed
+        if (current_thinking != previous_thinking) or (current_content != previous_content):
             previous_thinking = current_thinking
+            previous_content = current_content
+            
+            print(f"Debug - Content: '{current_content}', Thinking: '{current_thinking}'")  # Debug print
+            
             yield {
                 "thinking": current_thinking,
                 "content": current_content,
