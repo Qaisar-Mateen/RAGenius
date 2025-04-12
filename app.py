@@ -4,6 +4,7 @@ from groq import Groq
 
 st.set_page_config(page_icon="🧑‍🏫", layout="wide", page_title="RAGenius")
 
+# Enhanced CSS to force expanders to be closed by default
 st.markdown("""
 <style>
 .thinking-container {
@@ -11,6 +12,11 @@ st.markdown("""
     overflow-y: auto;
     border-radius: 0.5rem;
     padding: 1rem;
+}
+
+/* Force expanders to be closed by default */
+.streamlit-expanderHeader {
+    background-color: transparent !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -24,16 +30,26 @@ def main():
         api_key=st.secrets["GROQ_API_KEY"],
     )
 
+    # Initialize message history and expander states
     if "messages" not in st.session_state:
         st.session_state.messages = []
+    
+    # Initialize expander states dictionary to track which expanders are open
+    if "expander_states" not in st.session_state:
+        st.session_state.expander_states = {}
 
     # Display chat messages from history on app rerun
-    for message in st.session_state.messages:
+    for i, message in enumerate(st.session_state.messages):
         avatar = '🤖' if message["role"] == "assistant" else '👨‍💻'
         with st.chat_message(message["role"], avatar=avatar):
             # For assistant messages, show thinking first then content
             if message["role"] == "assistant" and message.get("thinking"):
-                with st.expander("See thinking process", expanded=False):
+                # Create a unique key for each expander
+                expander_key = f"thinking_{i}"
+                # Default to closed unless explicitly opened by user
+                is_expanded = st.session_state.expander_states.get(expander_key, False)
+                
+                with st.expander("See thinking process", expanded=is_expanded):
                     st.markdown(f'<div class="thinking-container">{message["thinking"]}</div>', unsafe_allow_html=True)
             
             # Display the message content
@@ -68,24 +84,28 @@ def main():
 
             # Stream the response and handle thinking parts
             with st.chat_message("assistant", avatar="🤖"):
-                # First create elements for thinking content
+                # Create separate containers for thinking and response content
                 thinking_expander = st.expander("See thinking process", expanded=False)
                 thinking_container = thinking_expander.empty()
-                
-                # Then create element for response content
                 response_container = st.empty()
                 
                 full_content = ""
-                thinking_content = ""
+                final_thinking_content = ""  # This will store the complete thinking content
+                
+                # Create a flag to prevent thinking expander from opening during streaming
+                st.session_state["keep_thinking_closed"] = True
                 
                 for chunk_data in stream_Chat(chat_completion):
                     full_content = chunk_data["content"]
                     thinking = chunk_data["thinking"]
                     
+                    # Stream thinking content immediately but keep expander closed
+                    # Don't accumulate thinking content, just use what's provided by stream_Chat
                     if thinking is not None:
-                        thinking_content = thinking
-                        thinking_container.markdown(f'<div class="thinking-container">{thinking_content}</div>', unsafe_allow_html=True)
+                        final_thinking_content = thinking  # Store for final message
+                        thinking_container.markdown(f'<div class="thinking-container">{thinking}</div>', unsafe_allow_html=True)
                     
+                    # Stream response content
                     response_container.markdown(full_content)
                 
                 # Final response
@@ -98,7 +118,7 @@ def main():
         st.session_state.messages.append({
             "role": "assistant", 
             "content": full_content,
-            "thinking": thinking_content if thinking_content else None
+            "thinking": final_thinking_content if final_thinking_content else None
         })
         
         scroll_anchor.markdown("")

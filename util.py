@@ -1,5 +1,6 @@
 from typing import Generator
 import re
+import time
 
 def icon(emoji: str, st):
     """Shows an emoji as a Notion-style page icon."""
@@ -27,14 +28,51 @@ def remove_thinking(content: str) -> str:
 
 def stream_Chat(chat_completion) -> Generator[tuple, None, None]:
     """Yield chat response content from the Groq API response with thinking parts separated."""
-    accumulated_text = ""
+    full_text = ""
+    current_thinking = None
+    previous_thinking = None
+    current_content = ""
     
     for chunk in chat_completion:
-        if chunk.choices[0].delta.content:
-            chunk_content = chunk.choices[0].delta.content
-            accumulated_text += chunk_content
+        if not chunk.choices[0].delta.content:
+            continue
             
-            # Check if we have complete thinking tags
-            thinking, current_content = extract_thinking(accumulated_text)
+        # Get the current chunk and add it to full text
+        chunk_text = chunk.choices[0].delta.content
+        full_text += chunk_text
+        
+        # Extract thinking part if present
+        think_pattern = r'<think>.*?</think>'
+        think_matches = re.findall(think_pattern, full_text, re.DOTALL)
+        
+        if think_matches:
+            # Get the last complete thinking block
+            last_think = think_matches[-1]
+            current_thinking = last_think[7:-8].strip()  # Remove <think> and </think> tags
             
-            yield {"thinking": thinking, "content": current_content, "chunk": chunk_content}
+            # Remove all thinking blocks from content
+            current_content = re.sub(think_pattern, '', full_text, flags=re.DOTALL).strip()
+        else:
+            # Check if we have a partial thinking section in progress
+            think_start = full_text.find("<think>")
+            if think_start >= 0:
+                # We have a thinking section in progress
+                current_content = full_text[:think_start].strip()
+                # Extract only the thinking part
+                current_thinking = full_text[think_start+7:].strip()
+            else:
+                # No thinking section
+                current_content = full_text.strip()
+                current_thinking = None
+        
+        # Add a small delay for slower generation
+        time.sleep(0.05)
+        
+        # Only yield if thinking content has changed to avoid repetition
+        if current_thinking != previous_thinking or current_thinking is None:
+            previous_thinking = current_thinking
+            yield {
+                "thinking": current_thinking,
+                "content": current_content,
+                "chunk": chunk_text
+            }
