@@ -5,3 +5,10 @@ python-pptx
 python-docx
 langchain
 langchain_text_splitters
+llama-index
+llama-index-embeddings-fastembed
+llama-index-vector-stores-qdrant
+llama-index-llms-groq
+qdrant-client
+fastembed
+python-dotenv

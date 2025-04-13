@@ -4,6 +4,12 @@ from groq import Groq
 import logging
 import tempfile
 import os
+from rag_pipeline import RAGPipeline
+import time
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if present
+load_dotenv()
 
 # Configure logging for better debugging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -112,12 +118,44 @@ div[data-testid="stFileUploaderDropzone"]::after {
 .start-button:hover {
     background-color: #FF6B6B;
 }
+
+/* Source citation styling */
+.source-citation {
+    padding: 8px 12px;
+    border-left: 3px solid #FF4B4B;
+    background-color: #f9f9f9;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+.source-filename {
+    font-weight: bold;
+    color: #333;
+}
 </style>
 """, unsafe_allow_html=True)
 
 @st.cache_resource
 def get_client():
     return Groq(api_key=st.secrets["GROQ_API_KEY"])
+
+@st.cache_resource
+def get_rag_pipeline():
+    """Initialize and return a RAG pipeline instance."""
+    # Get API keys from Streamlit secrets or environment variables
+    groq_api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+    qdrant_url = st.secrets.get("QDRANT_URL") or os.getenv("QDRANT_URL")
+    qdrant_api_key = st.secrets.get("QDRANT_API_KEY") or os.getenv("QDRANT_API_KEY")
+    
+    # Initialize the RAG pipeline
+    pipeline = RAGPipeline(
+        groq_api_key=groq_api_key,
+        qdrant_url=qdrant_url,
+        qdrant_api_key=qdrant_api_key,
+        storage_dir="./storage"
+    )
+    
+    return pipeline
 
 def initialize_session_state():
     """Initialize all required session state variables."""
@@ -138,6 +176,12 @@ def initialize_session_state():
         
     if "temp_dir" not in st.session_state:
         st.session_state.temp_dir = tempfile.mkdtemp()
+        
+    if "rag_initialized" not in st.session_state:
+        st.session_state.rag_initialized = False
+        
+    if "use_rag" not in st.session_state:
+        st.session_state.use_rag = True
 
 def upload_interface():
     """Display the file upload interface for study materials."""
@@ -149,6 +193,15 @@ def upload_interface():
         </p>""", 
         unsafe_allow_html=True
     )
+    
+    # Technology selection option
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.session_state.use_rag = st.checkbox(
+            "Use advanced RAG retrieval system",
+            value=True,
+            help="Enables more accurate retrieval of information from documents"
+        )
     
     # File uploader with direct CSS styling
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -165,6 +218,8 @@ def upload_interface():
         st.subheader("Uploaded Files:")
         
         all_text = ""
+        rag_pipeline = get_rag_pipeline() if st.session_state.use_rag else None
+        
         for uploaded_file in uploaded_files:
             # Check if file was already processed
             if any(file_info["name"] == uploaded_file.name for file_info in st.session_state.uploaded_files_info):
@@ -173,18 +228,23 @@ def upload_interface():
                 
             st.info(f"Processing {uploaded_file.name}...")
             
-            # Process the file
-            text, error = process_uploaded_file(uploaded_file, st.session_state.temp_dir)
+            # Process the file with RAG pipeline if available, otherwise use simple processing
+            if rag_pipeline and st.session_state.use_rag:
+                text, error = rag_pipeline.process_uploaded_file(uploaded_file, st.session_state.temp_dir)
+            else:
+                text, error = process_uploaded_file(uploaded_file, st.session_state.temp_dir)
             
             if error:
                 st.error(error)
             else:
-                # Store file info
-                st.session_state.uploaded_files_info.append({
+                # Store file info with extracted text
+                file_info = {
                     "name": uploaded_file.name,
                     "size": uploaded_file.size,
-                    "type": uploaded_file.type
-                })
+                    "type": uploaded_file.type,
+                    "content": text  # Store the extracted text with the file info
+                }
+                st.session_state.uploaded_files_info.append(file_info)
                 all_text += f"\n\n--- Content from {uploaded_file.name} ---\n\n"
                 all_text += text
                 st.success(f"✓ {uploaded_file.name} processed successfully")
@@ -194,13 +254,56 @@ def upload_interface():
         
         st.markdown("</div>", unsafe_allow_html=True)
     
-    # Show start button if files were uploaded
+    # Show extracted content and start button if files were uploaded
     if st.session_state.uploaded_files_info:
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
+            # Add a view content button
+            if st.button("View Extracted Content", key="view_content", use_container_width=True):
+                st.session_state.show_extracted_content = True
+            
+            # Display the extracted content in an expander if requested
+            if st.session_state.get("show_extracted_content", False):
+                with st.expander("Extracted Text from Documents", expanded=True):
+                    # Add a download button for the entire extracted content
+                    st.download_button(
+                        "Download All Extracted Text", 
+                        st.session_state.study_material_text,
+                        file_name="extracted_content.txt",
+                        mime="text/plain"
+                    )
+                    
+                    # Show content from each file in separate tabs
+                    if len(st.session_state.uploaded_files_info) > 0:
+                        file_names = [file_info["name"] for file_info in st.session_state.uploaded_files_info]
+                        tabs = st.tabs(file_names)
+                        
+                        for i, tab in enumerate(tabs):
+                            with tab:
+                                file_info = st.session_state.uploaded_files_info[i]
+                                st.text_area(
+                                    f"Extracted content from {file_info['name']}",
+                                    value=file_info.get("content", "No content extracted"),
+                                    height=300,
+                                    disabled=True
+                                )
+            
+            # Initialize RAG if selected
+            if st.session_state.use_rag and st.session_state.uploaded_files_info and not st.session_state.rag_initialized:
+                with st.spinner("Building knowledge index from uploaded documents..."):
+                    rag_pipeline = get_rag_pipeline()
+                    success = rag_pipeline.process_and_index_files(st.session_state.uploaded_files_info)
+                    if success:
+                        st.session_state.rag_initialized = True
+                        st.success("✅ Knowledge index created successfully!")
+                    else:
+                        st.error("❌ Failed to build knowledge index. Falling back to basic mode.")
+                        st.session_state.use_rag = False
+            
             st.markdown("<div style='text-align: center; margin-top: 30px;'>", unsafe_allow_html=True)
             if st.button("Start Chatting", key="start_chat", use_container_width=True):
                 st.session_state.setup_complete = True
+                st.session_state.show_extracted_content = False  # Hide content view when starting chat
                 st.rerun()
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -217,9 +320,18 @@ def display_chat_history():
                     st.markdown(f'<div class="thinking-container">{message["thinking"]}</div>', unsafe_allow_html=True)
             
             st.markdown(message["content"])
+            
+            # Display sources if available
+            if message["role"] == "assistant" and message.get("sources"):
+                with st.expander("View Sources", expanded=False):
+                    for idx, source in enumerate(message["sources"]):
+                        st.markdown(f"""<div class="source-citation">
+                            <span class="source-filename">{source['filename']}</span>
+                            <p>{source['text']}</p>
+                        </div>""", unsafe_allow_html=True)
 
 def handle_user_input(prompt, client):
-    """Process user input and generate response."""
+    """Process user input and generate response using RAG if enabled or standard approach."""
     # Add user message to history
     st.session_state.messages.append({"role": "user", "content": prompt})
     
@@ -233,72 +345,131 @@ def handle_user_input(prompt, client):
     # Initialize response variables
     full_content = ""
     final_thinking_content = ""
+    sources = []
     
     try:
-        # Prepare system message with study material context
-        system_message = {
-            "role": "system",
-            "content": f"You are RAGenius, a smart educational assistant. Use the study material provided below to answer the user's questions. If you don't know the answer based on the material, say so. Don't make up information.\n\nSTUDY MATERIAL:\n{st.session_state.study_material_text}\n\nIf the user asks about something not covered in the materials, let them know you can only answer based on the uploaded study materials."
-        }
-        
-        # Prepare filtered messages for API
-        filtered_messages = [system_message] + [
-            {"role": m["role"], "content": remove_thinking(m["content"])}
-            for m in st.session_state.messages
-        ]
-        
-        # Create API request
-        chat_completion = client.chat.completions.create(
-            model='qwen-qwq-32b',
-            messages=filtered_messages,
-            max_completion_tokens=128000,
-            stream=True
-        )
-        
-        # Process streaming response
-        with st.chat_message("assistant", avatar="🤖"):
-            # Set up UI containers
-            thinking_indicator = st.empty()
-            thinking_expander = st.expander("See thinking process", expanded=False)
+        # If RAG is enabled and initialized, use it
+        if st.session_state.use_rag and st.session_state.rag_initialized:
+            rag_pipeline = get_rag_pipeline()
             
-            with thinking_expander:
-                thinking_container = st.empty()
-            
-            response_placeholder = st.empty()
-            
-            is_thinking = False
-            
-            # Process each chunk from the stream
-            for chunk_data in stream_Chat(chat_completion):
-                content = chunk_data.get("content", "")
-                thinking = chunk_data.get("thinking")
+            # Set up UI containers for streaming response
+            with st.chat_message("assistant", avatar="🤖"):
+                thinking_indicator = st.empty()
+                thinking_expander = st.expander("See thinking process", expanded=False)
+                with thinking_expander:
+                    thinking_container = st.empty()
                 
-                # Handle thinking mode
-                if thinking:
-                    if not is_thinking:
-                        is_thinking = True
-                        thinking_indicator.markdown(
-                            '<div class="thinking-indicator"><span>Thinking</span><span class="thinking-dots"></span></div>',
-                            unsafe_allow_html=True
-                        )
+                response_placeholder = st.empty()
+                
+                # Show thinking indicator
+                thinking_indicator.markdown(
+                    '<div class="thinking-indicator"><span>Thinking</span><span class="thinking-dots"></span></div>',
+                    unsafe_allow_html=True
+                )
+                
+                # Generate thinking content
+                thinking_content = f"""<think>
+I'm searching through the uploaded documents to find relevant information about "{prompt}".
+Let me analyze the content and retrieve the most relevant passages.
+</think>"""
+                
+                thinking_container.markdown(f'<div class="thinking-container">{thinking_content}</div>', unsafe_allow_html=True)
+                
+                # Query the RAG pipeline
+                start_time = time.time()
+                result = rag_pipeline.query(prompt)
+                elapsed_time = time.time() - start_time
+                
+                # Update thinking content
+                sources = result.get("sources", [])
+                source_summary = "\n".join([
+                    f"- Found relevant information in '{source['filename']}'" 
+                    for source in sources
+                ])
+                
+                final_thinking_content = f"""<think>
+I'm searching through the uploaded documents to find relevant information about "{prompt}".
+Let me analyze the content and retrieve the most relevant passages.
+
+{source_summary}
+
+Total search time: {elapsed_time:.2f} seconds
+</think>"""
+                
+                thinking_container.markdown(f'<div class="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
+                
+                # Clear thinking indicator
+                thinking_indicator.empty()
+                
+                # Display the answer
+                full_content = result["answer"]
+                response_placeholder.markdown(full_content)
+        else:
+            # Use standard approach with all text context
+            # Prepare system message with study material context
+            system_message = {
+                "role": "system",
+                "content": f"You are RAGenius, a smart educational assistant. Use the study material provided below to answer the user's questions. If you don't know the answer based on the material, say so. Don't make up information.\n\nSTUDY MATERIAL:\n{st.session_state.study_material_text}\n\nIf the user asks about something not covered in the materials, let them know you can only answer based on the uploaded study materials."
+            }
+            
+            # Prepare filtered messages for API
+            filtered_messages = [system_message] + [
+                {"role": m["role"], "content": remove_thinking(m["content"])}
+                for m in st.session_state.messages
+            ]
+            
+            # Create API request
+            chat_completion = client.chat.completions.create(
+                model='qwen-qwq-32b',
+                messages=filtered_messages,
+                max_completion_tokens=128000,
+                stream=True
+            )
+            
+            # Process streaming response
+            with st.chat_message("assistant", avatar="🤖"):
+                # Set up UI containers
+                thinking_indicator = st.empty()
+                thinking_expander = st.expander("See thinking process", expanded=False)
+                
+                with thinking_expander:
+                    thinking_container = st.empty()
+                
+                response_placeholder = st.empty()
+                
+                is_thinking = False
+                
+                # Process each chunk from the stream
+                for chunk_data in stream_Chat(chat_completion):
+                    content = chunk_data.get("content", "")
+                    thinking = chunk_data.get("thinking")
                     
-                    final_thinking_content = thinking
-                    thinking_container.markdown(f'<div class="thinking-container">{thinking}</div>', unsafe_allow_html=True)
-                elif is_thinking and not thinking:
-                    is_thinking = False
-                    thinking_indicator.empty()
+                    # Handle thinking mode
+                    if thinking:
+                        if not is_thinking:
+                            is_thinking = True
+                            thinking_indicator.markdown(
+                                '<div class="thinking-indicator"><span>Thinking</span><span class="thinking-dots"></span></div>',
+                                unsafe_allow_html=True
+                            )
+                        
+                        final_thinking_content = thinking
+                        thinking_container.markdown(f'<div class="thinking-container">{thinking}</div>', unsafe_allow_html=True)
+                    elif is_thinking and not thinking:
+                        is_thinking = False
+                        thinking_indicator.empty()
+                    
+                    # Update content if available
+                    if content and content.strip():
+                        full_content = content
+                        response_placeholder.markdown(full_content)
                 
-                # Update content if available
-                if content and content.strip():
-                    full_content = content
-                    response_placeholder.markdown(full_content)
-            
-            # Clear thinking indicator when done
-            thinking_indicator.empty()
-            
-            # Handle no content case
-            if not full_content:
-                response_placeholder.markdown("*No response content was generated.*")
+                # Clear thinking indicator when done
+                thinking_indicator.empty()
+                
+                # Handle no content case
+                if not full_content:
+                    response_placeholder.markdown("*No response content was generated.*")
         
     except Exception as e:
         logging.error(f"Error in chat completion: {str(e)}", exc_info=True)
@@ -309,7 +480,8 @@ def handle_user_input(prompt, client):
         st.session_state.messages.append({
             "role": "assistant", 
             "content": full_content,
-            "thinking": final_thinking_content if final_thinking_content else None
+            "thinking": final_thinking_content if final_thinking_content else None,
+            "sources": sources
         })
     
     # Maintain scroll position
@@ -319,11 +491,20 @@ def chat_interface():
     """Display the chat interface for interacting with study materials."""
     st.subheader("Chat with Your Study Materials")
     
-    # Display info about uploaded files
+    # Display info about uploaded files and RAG status
     with st.expander("📚 Uploaded Study Materials", expanded=False):
         if st.session_state.uploaded_files_info:
             for file_info in st.session_state.uploaded_files_info:
                 st.markdown(f"- **{file_info['name']}** ({round(file_info['size']/1024, 1)} KB)")
+            
+            # Show RAG status
+            if st.session_state.use_rag:
+                if st.session_state.rag_initialized:
+                    st.success("✅ Advanced retrieval system active")
+                else:
+                    st.warning("⚠️ Advanced retrieval system not initialized")
+            else:
+                st.info("ℹ️ Using basic context retrieval")
         else:
             st.warning("No study materials uploaded.")
     
@@ -349,15 +530,40 @@ def main():
         # If setup is complete, show the chat interface
         chat_interface()
         
-        # Add option to reset and upload new materials
+        # Add options in sidebar
         with st.sidebar:
             st.header("Options")
+            
+            # Toggle RAG option if files were uploaded
+            if st.session_state.uploaded_files_info:
+                use_rag = st.checkbox(
+                    "Use advanced retrieval", 
+                    value=st.session_state.use_rag,
+                    key="toggle_rag"
+                )
+                
+                # Handle RAG toggle
+                if use_rag != st.session_state.use_rag:
+                    st.session_state.use_rag = use_rag
+                    if use_rag and not st.session_state.rag_initialized:
+                        with st.spinner("Building knowledge index from uploaded documents..."):
+                            rag_pipeline = get_rag_pipeline()
+                            success = rag_pipeline.process_and_index_files(st.session_state.uploaded_files_info)
+                            if success:
+                                st.session_state.rag_initialized = True
+                                st.success("✅ Knowledge index created successfully!")
+                            else:
+                                st.error("❌ Failed to build knowledge index.")
+                                st.session_state.use_rag = False
+            
+            # Reset button
             if st.button("Upload New Materials", use_container_width=True):
                 # Reset session state
                 st.session_state.setup_complete = False
                 st.session_state.uploaded_files_info = []
                 st.session_state.study_material_text = ""
                 st.session_state.messages = []
+                st.session_state.rag_initialized = False
                 st.rerun()
 
 if __name__ == "__main__":
