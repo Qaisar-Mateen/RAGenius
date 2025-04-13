@@ -1,6 +1,11 @@
 from typing import Generator
 import re
 import time
+import os
+from PyPDF2 import PdfReader
+from docx import Document
+from pptx import Presentation
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 def icon(emoji: str, st):
     """Shows an emoji as a Notion-style page icon."""
@@ -83,3 +88,73 @@ def stream_Chat(chat_completion) -> Generator[tuple, None, None]:
                 "content": current_content,
                 "chunk": chunk_text
             }
+
+def extract_text_from_pdf(file_path):
+    """Extract text from PDF file."""
+    reader = PdfReader(file_path)
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text() + "\n"
+    return text
+
+def extract_text_from_docx(file_path):
+    """Extract text from Word document."""
+    doc = Document(file_path)
+    text = ""
+    for paragraph in doc.paragraphs:
+        text += paragraph.text + "\n"
+    return text
+
+def extract_text_from_pptx(file_path):
+    """Extract text from PowerPoint presentation."""
+    ppt = Presentation(file_path)
+    text = ""
+    for slide in ppt.slides:
+        for shape in slide.shapes:
+            if hasattr(shape, "text"):
+                text += shape.text + "\n"
+    return text
+
+def process_uploaded_file(uploaded_file, temp_dir):
+    """Process an uploaded file and extract text."""
+    # Create a temporary file path
+    file_path = os.path.join(temp_dir, uploaded_file.name)
+    
+    # Save uploaded file to disk temporarily
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    
+    # Extract text based on file extension
+    file_extension = os.path.splitext(uploaded_file.name)[1].lower()
+    
+    try:
+        if file_extension == '.pdf':
+            text = extract_text_from_pdf(file_path)
+        elif file_extension == '.docx':
+            text = extract_text_from_docx(file_path)
+        elif file_extension in ['.pptx', '.ppt']:
+            text = extract_text_from_pptx(file_path)
+        else:
+            return None, f"Unsupported file format: {file_extension}"
+        
+        # Remove the temporary file
+        os.remove(file_path)
+        return text, None
+    except Exception as e:
+        # Remove the temporary file if it exists
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        return None, f"Error processing {uploaded_file.name}: {str(e)}"
+
+def chunk_text(text, chunk_size=1000, chunk_overlap=100):
+    """Split text into chunks for processing."""
+    if not text:
+        return []
+        
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        length_function=len
+    )
+    
+    return text_splitter.split_text(text)

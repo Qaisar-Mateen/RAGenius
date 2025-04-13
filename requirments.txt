@@ -1,2 +1,7 @@
 streamlit
 groq
+PyPDF2
+python-pptx
+python-docx
+langchain
+langchain_text_splitters
