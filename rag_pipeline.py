@@ -1,10 +1,7 @@
 import os
 import logging
 import time
-import tempfile
 from typing import List, Dict, Tuple, Optional, Any
-from pathlib import Path
-import pickle
 
 # Vector DB imports
 from llama_index.vector_stores.qdrant import QdrantVectorStore
@@ -123,6 +120,51 @@ class RAGPipeline:
         except Exception as e:
             logger.error(f"Error initializing vector store: {e}")
             raise
+            
+    def clear_collection(self) -> bool:
+        """Clear the Qdrant collection to remove old data before indexing new files.
+        
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        if not self.qdrant_client:
+            logger.warning("Qdrant client not initialized. Cannot clear collection.")
+            return False
+            
+        try:
+            # Check if collection exists
+            collections = self.qdrant_client.get_collections().collections
+            collection_names = [col.name for col in collections]
+            
+            if self.collection_name in collection_names:
+                # Delete collection
+                logger.info(f"Deleting existing collection: {self.collection_name}")
+                self.qdrant_client.delete_collection(collection_name=self.collection_name)
+                
+                # Recreate collection with same settings
+                logger.info(f"Recreating collection: {self.collection_name}")
+                dimension = 768  # Default dimension for BAAI/bge-base-en-v1.5
+                self.qdrant_client.create_collection(
+                    collection_name=self.collection_name,
+                    vectors_config=qdrant_client.http.models.VectorParams(
+                        size=dimension,
+                        distance=qdrant_client.http.models.Distance.COSINE
+                    )
+                )
+                logger.info(f"Collection {self.collection_name} cleared and recreated successfully")
+                
+                # Reinitialize vector store with new collection
+                self.vector_store = QdrantVectorStore(
+                    client=self.qdrant_client, 
+                    collection_name=self.collection_name
+                )
+                return True
+            else:
+                logger.info(f"Collection {self.collection_name} does not exist yet, nothing to clear")
+                return True
+        except Exception as e:
+            logger.error(f"Error clearing collection: {e}")
+            return False
 
     def extract_text_from_pdf(self, file_path: str) -> str:
         """Extract text from PDF file."""
@@ -224,12 +266,28 @@ class RAGPipeline:
         logger.info(f"Created {len(all_nodes)} chunks from {len(documents_dict)} documents")
         return all_nodes
 
-    def build_index(self, documents: List[Document]) -> VectorStoreIndex:
-        """Build vector index from documents."""
+    def build_index(self, documents: List[Document], clear_database: bool = True) -> VectorStoreIndex:
+        """Build vector index from documents.
+        
+        Args:
+            documents: List of documents to index
+            clear_database: If True, clear the Qdrant database before indexing
+            
+        Returns:
+            VectorStoreIndex: The built index
+        """
         try:
             if not self.vector_store:
                 logger.error("Vector store not initialized. Cannot build index.")
                 raise ValueError("Vector store not initialized")
+            
+            # Clear the Qdrant collection before indexing if requested
+            if clear_database:
+                logger.info("Clearing Qdrant collection before building new index")
+                success = self.clear_collection()
+                if not success:
+                    logger.error("Failed to clear Qdrant collection")
+                    raise ValueError("Failed to clear Qdrant collection")
                 
             storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
             
@@ -254,7 +312,23 @@ class RAGPipeline:
         try:
             # Persist the index in the storage directory
             index_path = os.path.join(self.storage_dir, index_name)
+            
+            # Clean the existing directory if it exists to avoid conflicts
+            if os.path.exists(index_path):
+                # This helps ensure we don't have orphaned files from previous indices
+                logger.info(f"Cleaning existing index directory: {index_path}")
+                for filename in os.listdir(index_path):
+                    file_path = os.path.join(index_path, filename)
+                    try:
+                        if os.path.isfile(file_path):
+                            os.unlink(file_path)
+                    except Exception as e:
+                        logger.warning(f"Error deleting {file_path}: {e}")
+            
+            # Make sure directory exists
             os.makedirs(index_path, exist_ok=True)
+            
+            # Persist the index
             self.index.storage_context.persist(persist_dir=index_path)
             
             logger.info(f"Index saved to {index_path}")
@@ -263,7 +337,7 @@ class RAGPipeline:
             logger.error(f"Error saving index: {e}")
             return False
 
-    def create_query_engine(self, similarity_top_k=3):
+    def create_query_engine(self, similarity_top_k=7):
         """Create a query engine from the index with configurable parameters."""
         if not self.index:
             logger.warning("No index available for query engine")
@@ -275,7 +349,7 @@ class RAGPipeline:
         )
         return self.query_engine
 
-    def query(self, query_text: str, similarity_top_k=3) -> Dict[str, Any]:
+    def query(self, query_text: str, similarity_top_k=7) -> Dict[str, Any]:
         """Query the RAG system with configurable parameters."""
         start_time = time.time()
         
