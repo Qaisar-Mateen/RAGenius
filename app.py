@@ -60,14 +60,36 @@ st.markdown("""
     animation: dots 1.2s infinite steps(1);
 }
 
-/* Upload area styling */
-.upload-area {
-    border: 2px dashed #FF4B4B;
-    border-radius: 10px;
-    padding: 30px;
-    text-align: center;
-    margin-bottom: 20px;
-    background-color: rgba(255, 75, 75, 0.05);
+/* New direct file uploader styling */
+div[data-testid="stFileUploader"] {
+    border: 2px dashed #FF4B4B !important;
+    border-radius: 10px !important;
+    padding: 30px !important;
+    text-align: center !important;
+    margin-bottom: 20px !important;
+    background-color: rgba(255, 75, 75, 0.05) !important;
+}
+
+div[data-testid="stFileUploader"] div[data-testid="stFileUploaderDropzone"] {
+    min-height: 150px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 20px !important;
+    padding: 10px !important;
+}
+
+div[data-testid="stFileUploaderDropzone"] button {
+    background-color: #FF4B4B !important;
+    color: white !important;
+}
+
+div[data-testid="stFileUploaderDropzone"]::after {
+    content: "Drag and drop files here";
+    color: #888;
+    font-size: 14px;
+    margin-top: 10px;
 }
 
 .file-list {
@@ -93,7 +115,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Cache API key to avoid repeated lookups
 @st.cache_resource
 def get_client():
     return Groq(api_key=st.secrets["GROQ_API_KEY"])
@@ -129,17 +150,14 @@ def upload_interface():
         unsafe_allow_html=True
     )
     
-    # File uploader
+    # File uploader with direct CSS styling
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.markdown("<div class='upload-area'>", unsafe_allow_html=True)
         uploaded_files = st.file_uploader(
-            "Choose files", 
-            type=["pdf", "docx", "pptx", "ppt"], 
+            "Choose PDF, PowerPoint, or Word documents",
+            type=["pdf", "docx", "pptx", "ppt"],
             accept_multiple_files=True,
-            label_visibility="collapsed"
         )
-        st.markdown("</div>", unsafe_allow_html=True)
     
     # Process uploaded files
     if uploaded_files:
