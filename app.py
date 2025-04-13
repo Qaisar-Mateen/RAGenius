@@ -503,9 +503,9 @@ Using the full text of uploaded documents to answer: "{prompt}"
                     # Clear thinking indicator once thinking is complete
                     thinking_indicator.empty()
                 
-                # Update content if available
+                # Update content if available - Changed back to '=' to avoid repetition
                 if content and content.strip():
-                    full_content = content
+                    full_content = content  # Changed from '+=' back to '=' to avoid repetition
                     response_placeholder.markdown(full_content)
             
             # Final update to thinking content after all chunks processed
