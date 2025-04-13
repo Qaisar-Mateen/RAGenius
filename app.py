@@ -119,18 +119,25 @@ div[data-testid="stFileUploaderDropzone"]::after {
     background-color: #FF6B6B;
 }
 
-/* Source citation styling */
+/* Source citation styling - updated to match thinking-container */
 .source-citation {
-    padding: 8px 12px;
+    margin-bottom: 10px;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background-color: rgba(255, 75, 75, 0.05);
     border-left: 3px solid #FF4B4B;
-    background-color: #f9f9f9;
-    margin-top: 10px;
     font-size: 0.9em;
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 .source-filename {
     font-weight: bold;
-    color: #333;
+    color: #FF4B4B;
+    display: block;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 75, 75, 0.3);
 }
 </style>
 """, unsafe_allow_html=True)
@@ -331,7 +338,6 @@ def display_chat_history():
                         </div>""", unsafe_allow_html=True)
 
 def handle_user_input(prompt, client):
-    """Process user input and generate response using RAG if enabled or standard approach."""
     # Add user message to history
     st.session_state.messages.append({"role": "user", "content": prompt})
     
@@ -348,77 +354,94 @@ def handle_user_input(prompt, client):
     sources = []
     
     try:
-        # If RAG is enabled and initialized, use it
-        if st.session_state.use_rag and st.session_state.rag_initialized:
-            rag_pipeline = get_rag_pipeline()
+        # Set up UI containers for response
+        with st.chat_message("assistant", avatar="🤖"):
+            thinking_indicator = st.empty()
+            thinking_expander = st.expander("See thinking process", expanded=False)
+            with thinking_expander:
+                thinking_container = st.empty()
             
-            # Set up UI containers for streaming response
-            with st.chat_message("assistant", avatar="🤖"):
-                thinking_indicator = st.empty()
-                thinking_expander = st.expander("See thinking process", expanded=False)
-                with thinking_expander:
-                    thinking_container = st.empty()
-                
-                response_placeholder = st.empty()
-                
-                # Show thinking indicator
-                thinking_indicator.markdown(
-                    '<div class="thinking-indicator"><span>Thinking</span><span class="thinking-dots"></span></div>',
-                    unsafe_allow_html=True
-                )
-                
-                # Generate thinking content
-                thinking_content = f"""<think>
+            response_placeholder = st.empty()
+            
+            # Show thinking indicator
+            thinking_indicator.markdown(
+                '<div class="thinking-indicator"><span>Thinking</span><span class="thinking-dots"></span></div>',
+                unsafe_allow_html=True
+            )
+
+            # Phase 1: Get context from either RAG or basic documents
+            if st.session_state.use_rag and st.session_state.rag_initialized:
+                # Use RAG pipeline to retrieve relevant context
+                retrieval_thinking = f"""<think>
+[Document Retrieval Phase]
 I'm searching through the uploaded documents to find relevant information about "{prompt}".
 Let me analyze the content and retrieve the most relevant passages.
 </think>"""
                 
-                thinking_container.markdown(f'<div class="thinking-container">{thinking_content}</div>', unsafe_allow_html=True)
+                thinking_container.markdown(f'<div class="thinking-container">{retrieval_thinking}</div>', unsafe_allow_html=True)
                 
-                # Query the RAG pipeline
+                # Query the RAG pipeline to get relevant context
                 start_time = time.time()
-                result = rag_pipeline.query(prompt)
+                rag_pipeline = get_rag_pipeline()
+                rag_result = rag_pipeline.query(prompt)
                 elapsed_time = time.time() - start_time
                 
-                # Update thinking content
-                sources = result.get("sources", [])
+                # Get sources and context from RAG result
+                sources = rag_result.get("sources", [])
+                rag_answer = rag_result.get("answer", "")
+                
+                # Prepare context from retrieved documents
+                context_parts = []
+                for source in sources:
+                    context_parts.append(f"From {source['filename']}:\n{source['text']}")
+                
+                retrieved_context = "\n\n".join(context_parts)
+                
+                # Update thinking content with source information
                 source_summary = "\n".join([
                     f"- Found relevant information in '{source['filename']}'" 
                     for source in sources
                 ])
                 
+                # Add retrieval information to thinking content
                 final_thinking_content = f"""<think>
-I'm searching through the uploaded documents to find relevant information about "{prompt}".
-Let me analyze the content and retrieve the most relevant passages.
-
-{source_summary}
-
+[Document Retrieval Phase]
+I searched through the uploaded documents to find relevant information about "{prompt}".
+{source_summary or "No directly relevant information found in documents."}
 Total search time: {elapsed_time:.2f} seconds
 </think>"""
                 
                 thinking_container.markdown(f'<div class="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
                 
-                # Clear thinking indicator
-                thinking_indicator.empty()
+                # Create context from RAG results
+                if retrieved_context:
+                    context = f"I found the following relevant information in your uploaded documents:\n\n{retrieved_context}\n\nBased on this information from your documents, please answer: {prompt}"
+                else:
+                    context = f"I couldn't find relevant information about '{prompt}' in your uploaded documents. Please answer based on your general knowledge, but be clear that the answer is not from the uploaded materials."
                 
-                # Display the answer
-                full_content = result["answer"]
-                response_placeholder.markdown(full_content)
-        else:
-            # Use standard approach with all text context
-            # Prepare system message with study material context
+            else:
+                # Use standard approach with all text context
+                context = st.session_state.study_material_text
+                final_thinking_content = f"""<think>
+[Document Analysis]
+Using the full text of uploaded documents to answer: "{prompt}"
+</think>"""
+                thinking_container.markdown(f'<div class="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
+            
+            # Phase 2: Send to LLM with appropriate context using the same model for both approaches
+            # Prepare system message with appropriate context
             system_message = {
                 "role": "system",
-                "content": f"You are RAGenius, a smart educational assistant. Use the study material provided below to answer the user's questions. If you don't know the answer based on the material, say so. Don't make up information.\n\nSTUDY MATERIAL:\n{st.session_state.study_material_text}\n\nIf the user asks about something not covered in the materials, let them know you can only answer based on the uploaded study materials."
+                "content": f"You are RAGenius, a smart educational assistant. Use the information provided below to answer the user's questions. If you don't know the answer based on the provided information, say so. Don't make up information.\n\nINFORMATION:\n{context}\n\nIf the user asks about something not covered in the materials, let them know that it's not covered in the material provided but still try you best to answer it. Do not write in chinese else prompted to do so. While answer try to be as detailed as possible and maintain a clear and neat structure so that user can clearly understand."
             }
             
             # Prepare filtered messages for API
             filtered_messages = [system_message] + [
                 {"role": m["role"], "content": remove_thinking(m["content"])}
-                for m in st.session_state.messages
+                for m in st.session_state.messages[-5:]  # Keep conversation history limited
             ]
             
-            # Create API request
+            # Create API request with Qwen model
             chat_completion = client.chat.completions.create(
                 model='qwen-qwq-32b',
                 messages=filtered_messages,
@@ -426,50 +449,79 @@ Total search time: {elapsed_time:.2f} seconds
                 stream=True
             )
             
-            # Process streaming response
-            with st.chat_message("assistant", avatar="🤖"):
-                # Set up UI containers
-                thinking_indicator = st.empty()
-                thinking_expander = st.expander("See thinking process", expanded=False)
+            # Track complete model thinking content
+            model_thinking_content = ""
+            # Track the last thinking piece to avoid duplication
+            last_thinking_chunk = ""
+            
+            # Flag to track if model is currently in thinking mode
+            model_in_thinking_mode = False
+            # Flag to track if we've received any thinking content from the model
+            received_thinking_content = False
+            
+            # Process each chunk from the stream
+            for chunk_data in stream_Chat(chat_completion):
+                content = chunk_data.get("content", "")
+                thinking = chunk_data.get("thinking")
                 
-                with thinking_expander:
-                    thinking_container = st.empty()
-                
-                response_placeholder = st.empty()
-                
-                is_thinking = False
-                
-                # Process each chunk from the stream
-                for chunk_data in stream_Chat(chat_completion):
-                    content = chunk_data.get("content", "")
-                    thinking = chunk_data.get("thinking")
+                # Handle thinking mode from model
+                if thinking:
+                    received_thinking_content = True
+                    model_in_thinking_mode = True
                     
-                    # Handle thinking mode
-                    if thinking:
-                        if not is_thinking:
-                            is_thinking = True
-                            thinking_indicator.markdown(
-                                '<div class="thinking-indicator"><span>Thinking</span><span class="thinking-dots"></span></div>',
-                                unsafe_allow_html=True
-                            )
+                    # Only add the new part of thinking that hasn't been seen before
+                    # This fixes the repetition problem
+                    if thinking != last_thinking_chunk:
+                        if len(model_thinking_content) == 0:
+                            model_thinking_content = thinking
+                        else:
+                            # Find where the new content actually begins to avoid duplication
+                            # Get only the new characters that weren't in the last chunk
+                            new_content = thinking[len(last_thinking_chunk):] if thinking.startswith(last_thinking_chunk) else thinking
+                            model_thinking_content += new_content
                         
-                        final_thinking_content = thinking
-                        thinking_container.markdown(f'<div class="thinking-container">{thinking}</div>', unsafe_allow_html=True)
-                    elif is_thinking and not thinking:
-                        is_thinking = False
-                        thinking_indicator.empty()
+                        last_thinking_chunk = thinking
                     
-                    # Update content if available
-                    if content and content.strip():
-                        full_content = content
-                        response_placeholder.markdown(full_content)
+                        # Update thinking display
+                        combined_thinking = final_thinking_content + "\n\n" + f"""<think>
+[Model Reasoning]
+{model_thinking_content}
+</think>"""
+                        
+                        thinking_container.markdown(f'<div class="thinking-container">{combined_thinking}</div>', unsafe_allow_html=True)
                 
-                # Clear thinking indicator when done
-                thinking_indicator.empty()
+                # Check if thinking has ended by detecting closing tag in the last thinking chunk
+                if "</think>" in last_thinking_chunk and model_in_thinking_mode:
+                    # Thinking phase has ended when we see the closing tag
+                    model_in_thinking_mode = False
+                    # Clear thinking indicator once thinking is complete
+                    thinking_indicator.empty()
+                elif content and model_in_thinking_mode:
+                    # If we receive content without thinking content after being in thinking mode,
+                    # it means the thinking phase has ended
+                    model_in_thinking_mode = False
+                    # Clear thinking indicator once thinking is complete
+                    thinking_indicator.empty()
                 
-                # Handle no content case
-                if not full_content:
-                    response_placeholder.markdown("*No response content was generated.*")
+                # Update content if available
+                if content and content.strip():
+                    full_content = content
+                    response_placeholder.markdown(full_content)
+            
+            # Final update to thinking content after all chunks processed
+            if model_thinking_content:
+                final_thinking_content += "\n\n" + f"""<think>
+[Model Reasoning]
+{model_thinking_content}
+</think>"""
+                thinking_container.markdown(f'<div class="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
+                
+            # Clear thinking indicator if it's still showing
+            thinking_indicator.empty()
+            
+            # Handle no content case
+            if not full_content:
+                response_placeholder.markdown("*No response content was generated.*")
         
     except Exception as e:
         logging.error(f"Error in chat completion: {str(e)}", exc_info=True)
