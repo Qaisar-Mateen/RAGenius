@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Generator, List, Dict, Any
 import re
 import time
 import os
@@ -90,30 +90,55 @@ def stream_Chat(chat_completion) -> Generator[tuple, None, None]:
             }
 
 def extract_text_from_pdf(file_path):
-    """Extract text from PDF file."""
+    """Extract text from PDF file with improved paragraph structure."""
     reader = PdfReader(file_path)
     text = ""
     for page in reader.pages:
-        text += page.extract_text() + "\n"
+        page_text = page.extract_text()
+        if page_text:
+            # Clean up PDF text to better preserve paragraphs
+            # Replace multiple newlines with paragraph breaks
+            page_text = re.sub(r'\n\s*\n', '\n\n', page_text)
+            # Replace single newlines that don't end with sentence-ending punctuation
+            # with spaces (preserving true paragraph breaks)
+            page_text = re.sub(r'([^\.\?\!])\n([A-Z0-9])', r'\1 \2', page_text)
+            text += page_text + "\n\n"  # Add paragraph break between pages
     return text
 
 def extract_text_from_docx(file_path):
-    """Extract text from Word document."""
+    """Extract text from Word document with improved paragraph structure."""
     doc = Document(file_path)
-    text = ""
+    paragraphs = []
+    
     for paragraph in doc.paragraphs:
-        text += paragraph.text + "\n"
-    return text
+        if paragraph.text.strip():
+            # Add non-empty paragraphs
+            paragraphs.append(paragraph.text.strip())
+    
+    # Join paragraphs with double newlines to preserve paragraph structure
+    return "\n\n".join(paragraphs)
 
 def extract_text_from_pptx(file_path):
-    """Extract text from PowerPoint presentation."""
+    """Extract text from PowerPoint presentation with slide separation."""
     ppt = Presentation(file_path)
-    text = ""
-    for slide in ppt.slides:
+    slides_text = []
+    
+    for i, slide in enumerate(ppt.slides):
+        slide_parts = []
+        # Add slide number as header
+        slide_parts.append(f"Slide {i+1}:")
+        
+        # Process shapes in the slide
         for shape in slide.shapes:
-            if hasattr(shape, "text"):
-                text += shape.text + "\n"
-    return text
+            if hasattr(shape, "text") and shape.text.strip():
+                slide_parts.append(shape.text.strip())
+        
+        # Join all text from this slide
+        if len(slide_parts) > 1:  # Only include if there's content beyond the header
+            slides_text.append("\n".join(slide_parts))
+    
+    # Join slides with double newlines to create clear separation
+    return "\n\n".join(slides_text)
 
 def process_uploaded_file(uploaded_file, temp_dir):
     """Process an uploaded file and extract text."""
@@ -146,15 +171,27 @@ def process_uploaded_file(uploaded_file, temp_dir):
             os.remove(file_path)
         return None, f"Error processing {uploaded_file.name}: {str(e)}"
 
-def chunk_text(text, chunk_size=1000, chunk_overlap=100):
-    """Split text into chunks for processing."""
+def chunk_text(text, chunk_size=1500, chunk_overlap=150):
+    """Split text into chunks for processing with improved paragraph preservation."""
     if not text:
         return []
         
+    # Use a paragraph-aware text splitter that better preserves document structure
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
-        length_function=len
+        length_function=len,
+        separators=["\n\n", "\n", ". ", " ", ""]  # Prioritize paragraph breaks first
     )
     
-    return text_splitter.split_text(text)
+    # Add paragraph indicators to help the model understand structure
+    chunks = text_splitter.split_text(text)
+    
+    # Format chunks to better indicate paragraphs
+    formatted_chunks = []
+    for chunk in chunks:
+        # Replace paragraph breaks with clear indicators
+        formatted_chunk = chunk.replace("\n\n", "\n\n[PARAGRAPH]\n\n")
+        formatted_chunks.append(formatted_chunk)
+    
+    return formatted_chunks

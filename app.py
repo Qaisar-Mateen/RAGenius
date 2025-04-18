@@ -380,10 +380,40 @@ Let me analyze the content and retrieve the most relevant passages.
                 
                 thinking_container.markdown(f'<div class="thinking-container">{retrieval_thinking}</div>', unsafe_allow_html=True)
                 
-                # Query the RAG pipeline to get relevant context
+                # Create a context-enhanced query that includes relevant conversation history
+                conversation_context = ""
+                if len(st.session_state.messages) > 1:  # If there's previous conversation
+                    # Get the last few messages (limiting to prevent context overflow)
+                    recent_messages = st.session_state.messages[-5:]  # Last 5 messages or fewer
+                    
+                    # Build conversation context string
+                    conversation_context = "Previous conversation:\n"
+                    for msg in recent_messages:
+                        role = "User" if msg["role"] == "user" else "Assistant"
+                        # Remove any thinking content from assistant messages
+                        content = remove_thinking(msg["content"]) if msg["role"] == "assistant" else msg["content"]
+                        conversation_context += f"{role}: {content}\n\n"
+                    
+                    conversation_context += f"Current question: {prompt}\n"
+                    
+                    # Add to thinking display
+                    context_thinking = f"""<think>
+[Conversation Context Analysis]
+I'm considering the recent conversation history to enhance retrieval:
+{conversation_context}
+</think>"""
+                    
+                    final_thinking_content += "\n\n" + context_thinking
+                    thinking_container.markdown(f'<div class="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
+                
+                # Query the RAG pipeline to get relevant context with enhanced query
                 start_time = time.time()
                 rag_pipeline = get_rag_pipeline()
-                rag_result = rag_pipeline.query(prompt)
+                
+                # Use the conversation-enhanced query if available, otherwise just the prompt
+                rag_query = conversation_context + prompt if conversation_context else prompt
+                rag_result = rag_pipeline.query(rag_query)
+                
                 elapsed_time = time.time() - start_time
                 
                 # Get sources and context from RAG result
@@ -404,13 +434,14 @@ Let me analyze the content and retrieve the most relevant passages.
                 ])
                 
                 # Add retrieval information to thinking content
-                final_thinking_content = f"""<think>
+                retrieval_update = f"""<think>
 [Document Retrieval Phase]
 I searched through the uploaded documents to find relevant information about "{prompt}".
 {source_summary or "No directly relevant information found in documents."}
 Total search time: {elapsed_time:.2f} seconds
 </think>"""
                 
+                final_thinking_content += "\n\n" + retrieval_update
                 thinking_container.markdown(f'<div class="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
                 
                 # Create context from RAG results
@@ -426,7 +457,7 @@ Total search time: {elapsed_time:.2f} seconds
 [Document Analysis]
 Using the full text of uploaded documents to answer: "{prompt}"
 </think>"""
-                thinking_container.markdown(f'<div class="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
+                thinking_container.markdown(f'<div="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
             
             # Phase 2: Send to LLM with appropriate context using the same model for both approaches
             # Prepare system message with appropriate context

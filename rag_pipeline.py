@@ -1,7 +1,9 @@
 import os
 import logging
 import time
+import pickle
 from typing import List, Dict, Tuple, Optional, Any
+from dotenv import load_dotenv
 
 # Vector DB imports
 from llama_index.vector_stores.qdrant import QdrantVectorStore
@@ -19,6 +21,10 @@ from llama_index.llms.groq import Groq
 from PyPDF2 import PdfReader
 from docx import Document as DocxDocument
 from pptx import Presentation
+from llama_parse import LlamaParse  # Added LlamaParse
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -27,21 +33,22 @@ logger = logging.getLogger(__name__)
 class RAGPipeline:
     """RAG Pipeline for document processing and retrieval."""
     
-    def __init__(
-        self, 
+    def __init__(        self, 
         qdrant_url: Optional[str] = None, 
         qdrant_api_key: Optional[str] = None,
         groq_api_key: Optional[str] = None,
+        llamaparse_api_key: Optional[str] = None,  # Added LlamaParse API key
         collection_name: str = "study_materials",
         embedding_model: str = "BAAI/bge-base-en-v1.5",
         llm_model: str = "llama-3.3-70b-versatile",
         storage_dir: str = "./storage",
-        chunk_size: int = 1000,
+        chunk_size: int = 1500,
         chunk_overlap: int = 200
     ):
-        self.qdrant_url = qdrant_url
-        self.qdrant_api_key = qdrant_api_key
-        self.groq_api_key = groq_api_key
+        self.qdrant_url = qdrant_url or os.getenv("QDRANT_URL")
+        self.qdrant_api_key = qdrant_api_key or os.getenv("QDRANT_API_KEY")
+        self.groq_api_key = groq_api_key or os.getenv("GROQ_API_KEY")
+        self.llamaparse_api_key = llamaparse_api_key or os.getenv("PARSE_API_KEY")
         self.collection_name = collection_name
         self.embedding_model_name = embedding_model
         self.llm_model_name = llm_model
@@ -55,10 +62,20 @@ class RAGPipeline:
         # Ensure temp directory exists for document processing
         os.makedirs("./data", exist_ok=True)
         
-        # Initialize node parser for text splitting
+        # Initialize paragraph-aware node parser for better text splitting
+        from llama_index.core.node_parser import SentenceSplitter
+        from llama_index.core.text_splitter import ParagraphSplitter, TokenTextSplitter
+
+        # Create a hierarchical node parser that preserves document structure
+        # First split by paragraphs, then by sentences within paragraphs
         self.node_parser = SentenceSplitter(
+            paragraph_separator="\n\n",  # Empty line indicates paragraph break
             chunk_size=self.chunk_size,
-            chunk_overlap=self.chunk_overlap
+            chunk_overlap=self.chunk_overlap,
+            tokenizer=TokenTextSplitter(
+                chunk_size=self.chunk_size,
+                chunk_overlap=self.chunk_overlap
+            )
         )
         
         # Initialize components
@@ -264,6 +281,12 @@ class RAGPipeline:
             all_nodes.extend(nodes)
             
         logger.info(f"Created {len(all_nodes)} chunks from {len(documents_dict)} documents")
+        
+        # Log chunks to a text file
+        log_path = self._log_chunks_to_file(all_nodes, f"chunks_log_{int(time.time())}.txt")
+        if log_path:
+            logger.info(f"Chunks saved to: {log_path}")
+        
         return all_nodes
 
     def build_index(self, documents: List[Document], clear_database: bool = True) -> VectorStoreIndex:
@@ -397,25 +420,89 @@ class RAGPipeline:
     def process_and_index_files(self, uploaded_files_info: List[Dict]) -> bool:
         """Process and index files from uploaded_files_info."""
         try:
-            # Extract text content from file info
-            documents_dict = {}
-            for file_info in uploaded_files_info:
-                if "content" in file_info and file_info["content"]:
-                    documents_dict[file_info["name"]] = file_info["content"]
+            # Extract file paths from file info for LlamaParse processing
+            file_paths = []
+            temp_files = []
+            file_names_map = {}  # Maps temp file paths to original filenames for metadata
             
-            if not documents_dict:
-                logger.warning("No content found in uploaded files")
+            # First, save uploaded files to disk temporarily
+            for file_info in uploaded_files_info:
+                if "name" in file_info:
+                    # Create temp file path
+                    temp_path = os.path.join("./data", file_info["name"])
+                    temp_files.append(temp_path)
+                    
+                    # Write content to temp file if available
+                    if "content" in file_info and file_info["content"]:
+                        with open(temp_path, "wb" if isinstance(file_info["content"], bytes) else "w", encoding=None if isinstance(file_info["content"], bytes) else "utf-8") as f:
+                            f.write(file_info["content"])
+                        file_paths.append(temp_path)
+                        file_names_map[temp_path] = file_info["name"]
+            
+            if not file_paths:
+                logger.warning("No valid files found for processing")
                 return False
             
-            # Convert to chunked LlamaIndex documents
-            nodes = self.process_documents(documents_dict)
+            # Use LlamaParse to process the documents
+            documents = None
+            try:
+                # Try LlamaParse first as the preferred method
+                logger.info(f"Attempting to parse {len(file_paths)} files with LlamaParse")
+                documents = self.load_or_parse_data(file_paths)
+                
+                # Ensure metadata preservation - sometimes LlamaParse loses original filenames
+                for doc in documents:
+                    if "source" in doc.metadata and doc.metadata["source"] in file_names_map:
+                        doc.metadata["filename"] = file_names_map[doc.metadata["source"]]
+                    elif "source_path" in doc.metadata and doc.metadata["source_path"] in file_names_map:
+                        doc.metadata["filename"] = file_names_map[doc.metadata["source_path"]]
+                
+                logger.info(f"Successfully parsed {len(documents)} documents using LlamaParse")
+            except Exception as e:
+                logger.warning(f"LlamaParse parsing failed: {e}. Falling back to traditional parsing.")
+                documents = None
+                
+            # Fallback to traditional document parsing if LlamaParse failed
+            if not documents:
+                logger.info("Using traditional document parsing methods")
+                documents_dict = {}
+                for file_path in file_paths:
+                    file_name = file_names_map.get(file_path, os.path.basename(file_path))
+                    file_extension = os.path.splitext(file_name)[1].lower()
+                    
+                    try:
+                        if file_extension == '.pdf':
+                            text = self.extract_text_from_pdf(file_path)
+                        elif file_extension == '.docx':
+                            text = self.extract_text_from_docx(file_path)
+                        elif file_extension in ['.pptx', '.ppt']:
+                            text = self.extract_text_from_pptx(file_path)
+                        else:
+                            logger.warning(f"Unsupported file format: {file_extension}")
+                            continue
+                            
+                        documents_dict[file_name] = text
+                    except Exception as extract_err:
+                        logger.warning(f"Error extracting text from {file_name}: {extract_err}")
+                
+                if not documents_dict:
+                    logger.warning("No content found in uploaded files")
+                    return False
+                
+                # Convert to chunked LlamaIndex documents
+                documents = self.process_documents(documents_dict)
             
-            if not nodes:
-                logger.warning("No chunks were created from documents")
+            # Clean up temporary files
+            for temp_file in temp_files:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+            
+            if not documents:
+                logger.warning("No documents were parsed successfully")
                 return False
                 
             # Build the index
-            self.build_index(nodes)
+            self.build_index(documents)
             
             # Save the index
             self.save_index()
@@ -425,7 +512,14 @@ class RAGPipeline:
             
             return True
         except Exception as e:
-            logger.error(f"Error processing and indexing files: {e}")
+            logger.error(f"Error processing and indexing files: {e}", exc_info=True)
+            # Clean up any temporary files
+            for temp_file in temp_files if 'temp_files' in locals() else []:
+                if os.path.exists(temp_file):
+                    try:
+                        os.remove(temp_file)
+                    except Exception:
+                        pass
             return False
             
     def test_pipeline(self) -> Dict[str, Any]:
@@ -458,3 +552,121 @@ class RAGPipeline:
                 "status": "error",
                 "message": f"Error testing pipeline: {str(e)}"
             }
+
+    def load_or_parse_data(self, file_paths: List[str], cache_dir: str = "./data") -> List[Document]:
+        """Load parsed data if available, or parse using LlamaParse if not.
+        
+        Args:
+            file_paths: List of file paths to parse
+            cache_dir: Directory to store cached parsed data
+            
+        Returns:
+            List of LlamaIndex Document objects
+        """
+        if not file_paths:
+            logger.warning("No file paths provided for parsing")
+            return []
+            
+        # Create a session-specific cache ID based on current timestamp
+        # This ensures we only use documents from the current chat session
+        session_id = int(time.time())
+        
+        # Create unique cache file name based on the file paths and session ID
+        # Including session_id ensures we never reuse cached data across sessions
+        files_hash = "_".join([os.path.basename(f) for f in file_paths])
+        cache_filename = f"llama_parsed_{session_id}_{files_hash}.pkl"
+        cache_filename = cache_filename.replace(' ', '_')[:100]  # Limit filename length
+        cache_file = os.path.join(cache_dir, cache_filename)
+        
+        # We'll always parse fresh for each session to ensure we only use current documents
+        
+        # Check if LlamaParse API key is available
+        if not self.llamaparse_api_key:
+            logger.error("LlamaParse API key not provided. Cannot parse documents.")
+            raise ValueError("LlamaParse API key is required for document parsing")
+        
+        try:
+            # Create a mapping of file paths to original filenames for metadata preservation
+            file_names_map = {path: os.path.basename(path) for path in file_paths}
+            
+            # Parse documents using LlamaParse
+            logger.info(f"Parsing {len(file_paths)} files with LlamaParse")
+            llama_parse_documents = LlamaParse(
+                api_key=self.llamaparse_api_key, 
+                result_type="markdown"
+            ).load_data(file_paths)
+            
+            # Ensure metadata preservation for current session files only
+            for doc in llama_parse_documents:
+                source_path = doc.metadata.get("source_path", "")
+                
+                # Only include documents from the current file paths
+                if source_path in file_names_map:
+                    # Ensure filename is preserved in metadata
+                    doc.metadata["filename"] = file_names_map[source_path]
+                    doc.metadata["original_filename"] = file_names_map[source_path]
+                    
+                    # Mark this document as from current session
+                    doc.metadata["session_id"] = session_id
+                else:
+                    # If file wasn't in our list, add a flag to indicate it's not from current session
+                    logger.warning(f"Document found with source path not in current session: {source_path}")
+                    doc.metadata["not_current_session"] = True
+            
+            # Filter out any documents not from the current session
+            current_session_docs = [doc for doc in llama_parse_documents 
+                                   if "not_current_session" not in doc.metadata]
+            
+            if len(current_session_docs) < len(llama_parse_documents):
+                logger.info(f"Filtered out {len(llama_parse_documents) - len(current_session_docs)} documents not from current session")
+            
+            # Save parsed data to cache
+            os.makedirs(cache_dir, exist_ok=True)
+            with open(cache_file, "wb") as f:
+                pickle.dump(current_session_docs, f)
+            
+            logger.info(f"Parsed documents saved to {cache_file}")
+            
+            return current_session_docs
+        except Exception as e:
+            logger.error(f"Error parsing documents with LlamaParse: {e}")
+            raise
+
+    def _log_chunks_to_file(self, nodes, filename="chunks_log.txt"):
+        """Log chunked data to a text file for inspection.
+        
+        Args:
+            nodes: List of nodes (chunks) to log
+            filename: Name of the log file
+            
+        Returns:
+            str: Path to the log file or None if an error occurred
+        """
+        log_dir = os.path.join(self.storage_dir, "logs")
+        os.makedirs(log_dir, exist_ok=True)
+        
+        # Create timestamp for unique filename
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        log_filename = f"{timestamp}_{filename}"
+        log_path = os.path.join(log_dir, log_filename)
+        
+        try:
+            with open(log_path, "w", encoding="utf-8") as f:
+                f.write(f"Chunked Data Log - Created: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"Total Chunks: {len(nodes)}\n")
+                f.write(f"Chunk Size: {self.chunk_size}, Chunk Overlap: {self.chunk_overlap}\n\n")
+                
+                for i, node in enumerate(nodes):
+                    f.write(f"{'='*80}\n")
+                    f.write(f"CHUNK #{i+1}\n")
+                    f.write(f"Source: {node.metadata.get('filename', 'Unknown')}\n")
+                    f.write(f"Node ID: {node.node_id}\n")
+                    f.write(f"{'='*80}\n\n")
+                    f.write(node.text)
+                    f.write("\n\n")
+            
+            logger.info(f"Chunked data logged to {log_path}")
+            return log_path
+        except Exception as e:
+            logger.error(f"Error logging chunks to file: {e}")
+            return None
