@@ -66,16 +66,11 @@ class RAGPipeline:
         from llama_index.core.node_parser import SentenceSplitter
         from llama_index.core.text_splitter import ParagraphSplitter, TokenTextSplitter
 
-        # Create a hierarchical node parser that preserves document structure
-        # First split by paragraphs, then by sentences within paragraphs
-        self.node_parser = SentenceSplitter(
+        # Create a node parser that properly chunks documents by paragraphs
+        self.node_parser = ParagraphSplitter(
             paragraph_separator="\n\n",  # Empty line indicates paragraph break
             chunk_size=self.chunk_size,
-            chunk_overlap=self.chunk_overlap,
-            tokenizer=TokenTextSplitter(
-                chunk_size=self.chunk_size,
-                chunk_overlap=self.chunk_overlap
-            )
+            chunk_overlap=self.chunk_overlap
         )
         
         # Initialize components
@@ -458,6 +453,11 @@ class RAGPipeline:
                         doc.metadata["filename"] = file_names_map[doc.metadata["source_path"]]
                 
                 logger.info(f"Successfully parsed {len(documents)} documents using LlamaParse")
+                
+                # Log the chunks from LlamaParse processing
+                log_path = self._log_chunks_to_file(documents, f"llama_chunks_log_{int(time.time())}.txt")
+                if log_path:
+                    logger.info(f"LlamaParse chunks saved to: {log_path}")
             except Exception as e:
                 logger.warning(f"LlamaParse parsing failed: {e}. Falling back to traditional parsing.")
                 documents = None
@@ -620,14 +620,29 @@ class RAGPipeline:
             if len(current_session_docs) < len(llama_parse_documents):
                 logger.info(f"Filtered out {len(llama_parse_documents) - len(current_session_docs)} documents not from current session")
             
-            # Save parsed data to cache
+            # Apply paragraph-wise chunking to the LlamaParse documents
+            logger.info(f"Applying paragraph-wise chunking to {len(current_session_docs)} LlamaParse documents")
+            chunked_nodes = []
+            for doc in current_session_docs:
+                # Apply the node_parser to get paragraph-wise chunks
+                nodes = self.node_parser.get_nodes_from_documents([doc])
+                
+                # Preserve metadata from the original document
+                for node in nodes:
+                    node.metadata.update(doc.metadata)
+                
+                chunked_nodes.extend(nodes)
+            
+            logger.info(f"Created {len(chunked_nodes)} paragraph-wise chunks from {len(current_session_docs)} LlamaParse documents")
+            
+            # Save parsed and chunked data to cache
             os.makedirs(cache_dir, exist_ok=True)
             with open(cache_file, "wb") as f:
-                pickle.dump(current_session_docs, f)
+                pickle.dump(chunked_nodes, f)
             
             logger.info(f"Parsed documents saved to {cache_file}")
             
-            return current_session_docs
+            return chunked_nodes
         except Exception as e:
             logger.error(f"Error parsing documents with LlamaParse: {e}")
             raise

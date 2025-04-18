@@ -406,12 +406,75 @@ I'm considering the recent conversation history to enhance retrieval:
                     final_thinking_content += "\n\n" + context_thinking
                     thinking_container.markdown(f'<div class="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
                 
-                # Query the RAG pipeline to get relevant context with enhanced query
-                start_time = time.time()
-                rag_pipeline = get_rag_pipeline()
-                
                 # Use the conversation-enhanced query if available, otherwise just the prompt
                 rag_query = conversation_context + prompt if conversation_context else prompt
+
+                # Optimize RAG query using Llama 3 model from Groq
+                try:
+                    # Show thinking about query optimization
+                    query_optimization_thinking = f"""<think>
+[Query Optimization Phase]
+Using Llama 3 to optimize the RAG query: "{rag_query}"
+Making it more specific and removing irrelevant content for better retrieval results.
+</think>"""
+                    
+                    final_thinking_content += "\n\n" + query_optimization_thinking
+                    thinking_container.markdown(f'<div class="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
+                    
+                    # Call Groq's Llama 3 model to optimize the query
+                    optimization_prompt = f"""You are a RAG query optimizer. Your job is to rewrite the user's query to make it more effective for retrieval.
+                    
+Original query: {rag_query}
+
+Guidelines:
+1. Make the query more specific by focusing on key concepts and entities
+2. Remove filler words, conversational elements, and politeness markers
+3. When asked in query about not answering from the material, then do not put that 
+question which should be not answered from the material in the query.
+4. Prioritize nouns, domain-specific terminology, and precise language
+5. Keep your response concise and focused only on the optimized query
+6. DO NOT add any explanations or commentary - only return the optimized query text
+
+Optimized query:"""
+                    
+                    # Use Groq client to call Llama 3
+                    optimized_query_response = client.chat.completions.create(
+                        model='llama-3.3-70b-versatile',
+                        messages=[{"role": "user", "content": optimization_prompt}],
+                        max_completion_tokens=1000,
+                        stream=False
+                    )
+                    
+                    # Extract the optimized query
+                    optimized_query = optimized_query_response.choices[0].message.content.strip()
+                    
+                    # Update thinking with the optimized query
+                    query_result_thinking = f"""<think>
+[Query Optimization Result]
+Original query: "{rag_query}"
+Optimized query: "{optimized_query}"
+</think>"""
+                    
+                    final_thinking_content += "\n\n" + query_result_thinking
+                    thinking_container.markdown(f'<div class="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
+                    
+                    # Use the optimized query instead of the original one
+                    rag_query = optimized_query
+                    
+                except Exception as e:
+                    # If optimization fails, log the error and continue with the original query
+                    logging.error(f"Error optimizing RAG query: {str(e)}", exc_info=True)
+                    query_error_thinking = f"""<think>
+[Query Optimization Error]
+Failed to optimize query due to error: {str(e)}
+Continuing with original query: "{rag_query}"
+</think>"""
+                    
+                    final_thinking_content += "\n\n" + query_error_thinking
+                    thinking_container.markdown(f'<div class="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
+
+                rag_pipeline = get_rag_pipeline()
+                start_time = time.time()
                 rag_result = rag_pipeline.query(rag_query)
                 
                 elapsed_time = time.time() - start_time
@@ -419,6 +482,7 @@ I'm considering the recent conversation history to enhance retrieval:
                 # Get sources and context from RAG result
                 sources = rag_result.get("sources", [])
                 rag_answer = rag_result.get("answer", "")
+                print("\n\n\n\n\\RAG Result: ", rag_answer) # Fixed invalid escape sequence
                 
                 # Prepare context from retrieved documents
                 context_parts = []
@@ -457,13 +521,13 @@ Total search time: {elapsed_time:.2f} seconds
 [Document Analysis]
 Using the full text of uploaded documents to answer: "{prompt}"
 </think>"""
-                thinking_container.markdown(f'<div="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
+                thinking_container.markdown(f'<div class="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
             
             # Phase 2: Send to LLM with appropriate context using the same model for both approaches
             # Prepare system message with appropriate context
             system_message = {
                 "role": "system",
-                "content": f"You are RAGenius, a smart educational assistant. Use the information provided below to answer the user's questions. If you don't know the answer based on the provided information, say so. Don't make up information.\n\nINFORMATION:\n{context}\n\nIf the user asks about something not covered in the materials, let them know that it's not covered in the material provided but still try you best to answer it. Do not write in chinese else prompted to do so. While answer try to be as detailed as possible and maintain a clear and neat structure so that user can clearly understand."
+                "content": f"You are RAGenius, a smart educational assistant. Use the information provided below to answer the user's questions. If you don't know the answer based on the provided information, say so. Don't make up information.\n\nINFORMATION:\n{context}\n\nIf the user asks about something not covered in the materials, do not let them know that it's not covered in the material provided but still try you best to answer it. Do not write in chinese else prompted to do so. While answer try to be as detailed as possible and maintain a clear and neat structure so that user can clearly understand."
             }
             
             # Prepare filtered messages for API
