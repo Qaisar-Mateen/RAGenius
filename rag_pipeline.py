@@ -64,11 +64,12 @@ class RAGPipeline:
         
         # Initialize paragraph-aware node parser for better text splitting
         from llama_index.core.node_parser import SentenceSplitter
-        from llama_index.core.text_splitter import ParagraphSplitter, TokenTextSplitter
+        from llama_index.core.text_splitter import TokenTextSplitter
 
         # Create a node parser that properly chunks documents by paragraphs
-        self.node_parser = ParagraphSplitter(
-            paragraph_separator="\n\n",  # Empty line indicates paragraph break
+        # Using SentenceSplitter with paragraph separator configuration
+        self.node_parser = SentenceSplitter(
+            separator="\n\n",  # Empty line indicates paragraph break
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap
         )
@@ -588,6 +589,7 @@ class RAGPipeline:
         try:
             # Create a mapping of file paths to original filenames for metadata preservation
             file_names_map = {path: os.path.basename(path) for path in file_paths}
+            file_basenames = [os.path.basename(path) for path in file_paths]
             
             # Parse documents using LlamaParse
             logger.info(f"Parsing {len(file_paths)} files with LlamaParse")
@@ -596,26 +598,39 @@ class RAGPipeline:
                 result_type="markdown"
             ).load_data(file_paths)
             
-            # Ensure metadata preservation for current session files only
+            # Ensure metadata preservation for current session files
             for doc in llama_parse_documents:
                 source_path = doc.metadata.get("source_path", "")
+                source_filename = os.path.basename(source_path) if source_path else ""
                 
-                # Only include documents from the current file paths
-                if source_path in file_names_map:
-                    # Ensure filename is preserved in metadata
-                    doc.metadata["filename"] = file_names_map[source_path]
-                    doc.metadata["original_filename"] = file_names_map[source_path]
-                    
-                    # Mark this document as from current session
+                # Check if the document matches any of our input files by basename
+                if source_path in file_names_map or source_filename in file_basenames:
+                    # Document is from current session
+                    doc.metadata["filename"] = file_names_map.get(source_path, source_filename)
+                    doc.metadata["original_filename"] = file_names_map.get(source_path, source_filename)
                     doc.metadata["session_id"] = session_id
                 else:
-                    # If file wasn't in our list, add a flag to indicate it's not from current session
-                    logger.warning(f"Document found with source path not in current session: {source_path}")
-                    doc.metadata["not_current_session"] = True
+                    # More lenient matching - check if source path ends with any of our filenames
+                    matched = False
+                    for base_name in file_basenames:
+                        if source_path.endswith(base_name):
+                            doc.metadata["filename"] = base_name
+                            doc.metadata["original_filename"] = base_name
+                            doc.metadata["session_id"] = session_id
+                            matched = True
+                            break
+                            
+                    if not matched:
+                        # If file wasn't in our list, add a flag but don't filter yet
+                        logger.warning(f"Document found with source path not in current session: {source_path}")
+                        # We'll keep all documents for now 
+                        # doc.metadata["not_current_session"] = True
             
+            # ** DISABLED FILTERING ** - Use all documents returned by LlamaParse for now
             # Filter out any documents not from the current session
-            current_session_docs = [doc for doc in llama_parse_documents 
-                                   if "not_current_session" not in doc.metadata]
+            # current_session_docs = [doc for doc in llama_parse_documents 
+            #                        if "not_current_session" not in doc.metadata]
+            current_session_docs = llama_parse_documents  # Use all documents
             
             if len(current_session_docs) < len(llama_parse_documents):
                 logger.info(f"Filtered out {len(llama_parse_documents) - len(current_session_docs)} documents not from current session")
