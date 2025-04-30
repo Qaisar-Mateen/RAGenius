@@ -40,7 +40,8 @@ class RAGPipeline:
         llamaparse_api_key: Optional[str] = None,  # Added LlamaParse API key
         collection_name: str = "study_materials",
         embedding_model: str = "BAAI/bge-base-en-v1.5",
-        llm_model: str = "llama-3.3-70b-versatile",
+        # llm_model: str = "llama-3.3-70b-versatile",
+        llm_model: str = "llama-3.1-8b-instant",
         storage_dir: str = "./storage",
         chunk_size: int = 1500,
         chunk_overlap: int = 200
@@ -662,41 +663,59 @@ class RAGPipeline:
             logger.error(f"Error parsing documents with LlamaParse: {e}")
             raise
 
-    def _log_chunks_to_file(self, nodes, filename="chunks_log.txt"):
-        """Log chunked data to a text file for inspection.
-        
-        Args:
-            nodes: List of nodes (chunks) to log
-            filename: Name of the log file
-            
-        Returns:
-            str: Path to the log file or None if an error occurred
-        """
-        log_dir = os.path.join(self.storage_dir, "logs")
-        os.makedirs(log_dir, exist_ok=True)
-        
-        # Create timestamp for unique filename
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        log_filename = f"{timestamp}_{filename}"
-        log_path = os.path.join(log_dir, log_filename)
-        
+    def _log_chunks_to_file(self, nodes, filename):
+        """Log chunks to a text file for debugging."""
         try:
-            with open(log_path, "w", encoding="utf-8") as f:
-                f.write(f"Chunked Data Log - Created: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-                f.write(f"Total Chunks: {len(nodes)}\n")
-                f.write(f"Chunk Size: {self.chunk_size}, Chunk Overlap: {self.chunk_overlap}\n\n")
+            log_dir = os.path.join(self.storage_dir, "logs")
+            os.makedirs(log_dir, exist_ok=True)
+            
+            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            log_path = os.path.join(log_dir, f"{timestamp}_{filename}")
+            
+            with open(log_path, 'w', encoding='utf-8') as f:
+                f.write(f"Chunk Log - {timestamp}\n")
+                f.write(f"Total Chunks: {len(nodes)}\n\n")
                 
                 for i, node in enumerate(nodes):
-                    f.write(f"{'='*80}\n")
-                    f.write(f"CHUNK #{i+1}\n")
-                    f.write(f"Source: {node.metadata.get('filename', 'Unknown')}\n")
-                    f.write(f"Node ID: {node.node_id}\n")
-                    f.write(f"{'='*80}\n\n")
-                    f.write(node.text)
-                    f.write("\n\n")
+                    f.write(f"Chunk {i+1}:\n")
+                    f.write(f"Source: {node.metadata.get('filename', 'unknown')}\n")
+                    f.write(f"Text ({len(node.text)} chars):\n")
+                    f.write(f"{node.text}\n")
+                    f.write("-" * 80 + "\n\n")
             
-            logger.info(f"Chunked data logged to {log_path}")
+            logger.info(f"Chunks logged to {log_path}")
             return log_path
         except Exception as e:
-            logger.error(f"Error logging chunks to file: {e}")
+            logger.error(f"Error logging chunks: {e}")
             return None
+    
+    def index_documents(self, documents: List[Document]) -> bool:
+        """Index a list of document nodes into the vector store.
+        
+        Args:
+            documents: List of document nodes to index
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        if not self.vector_store:
+            logger.error("Vector store not initialized. Cannot index documents.")
+            return False
+            
+        try:
+            # Create storage context with the vector store
+            storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
+            
+            # Create the index from the documents
+            self.index = VectorStoreIndex(
+                documents,
+                storage_context=storage_context,
+                show_progress=True
+            )
+            
+            logger.info(f"Successfully indexed {len(documents)} documents")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error indexing documents: {e}")
+            return False
