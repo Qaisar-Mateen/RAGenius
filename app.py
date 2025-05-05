@@ -395,12 +395,11 @@ Let me analyze the content and retrieve the most relevant passages.
                         conversation_context += f"{role}: {content}\n\n"
                     
                     conversation_context += f"Current question: {prompt}\n"
-                    
+                    # {conversation_context}
                     # Add to thinking display
                     context_thinking = f"""<think>
 [Conversation Context Analysis]
-I'm considering the recent conversation history to enhance retrieval:
-{conversation_context}
+I'm considering the recent conversation history to enhance retrieval
 </think>"""
                     
                     final_thinking_content += "\n\n" + context_thinking
@@ -433,7 +432,7 @@ Guidelines:
 question which should be not answered from the material in the query.
 4. Prioritize nouns, domain-specific terminology, and precise language
 5. Keep your response concise and focused only on the optimized query
-6. DO NOT add any explanations or commentary - only return the optimized query text
+6. DO NOT add any explanations or commentary - only return the optimized query text I repeat only the optimized query text else my grandma will die.
 
 Optimized query:"""
                     
@@ -449,10 +448,10 @@ Optimized query:"""
                     optimized_query = optimized_query_response.choices[0].message.content.strip()
                     
                     # Update thinking with the optimized query
+                    # Original query: "{rag_query}"
+                    # Optimized query: "{optimized_query}"
                     query_result_thinking = f"""<think>
-[Query Optimization Result]
-Original query: "{rag_query}"
-Optimized query: "{optimized_query}"
+[Running Query Optimization...]
 </think>"""
                     
                     final_thinking_content += "\n\n" + query_result_thinking
@@ -466,8 +465,7 @@ Optimized query: "{optimized_query}"
                     logging.error(f"Error optimizing RAG query: {str(e)}", exc_info=True)
                     query_error_thinking = f"""<think>
 [Query Optimization Error]
-Failed to optimize query due to error: {str(e)}
-Continuing with original query: "{rag_query}"
+Failed to optimize query due to error continuing with original query.
 </think>"""
                     
                     final_thinking_content += "\n\n" + query_error_thinking
@@ -491,17 +489,11 @@ Continuing with original query: "{rag_query}"
                 
                 retrieved_context = "\n\n".join(context_parts)
                 
-                # Update thinking content with source information
-                source_summary = "\n".join([
-                    f"- Found relevant information in '{source['filename']}'" 
-                    for source in sources
-                ])
                 
                 # Add retrieval information to thinking content
                 retrieval_update = f"""<think>
 [Document Retrieval Phase]
-I searched through the uploaded documents to find relevant information about "{prompt}".
-{source_summary or "No directly relevant information found in documents."}
+I searched through the uploaded documents to find relevant information.
 Total search time: {elapsed_time:.2f} seconds
 </think>"""
                 
@@ -519,7 +511,7 @@ Total search time: {elapsed_time:.2f} seconds
                 context = st.session_state.study_material_text
                 final_thinking_content = f"""<think>
 [Document Analysis]
-Using the full text of uploaded documents to answer: "{prompt}"
+Using the full text of uploaded documents to answer
 </think>"""
                 thinking_container.markdown(f'<div class="thinking-container">{final_thinking_content}</div>', unsafe_allow_html=True)
             
@@ -628,7 +620,6 @@ Using the full text of uploaded documents to answer: "{prompt}"
             "role": "assistant", 
             "content": full_content,
             "thinking": final_thinking_content if final_thinking_content else None,
-            "sources": sources
         })
     
     # Maintain scroll position
