@@ -1,0 +1,952 @@
+{
+  "metadata": {
+    "timestamp": "2025-04-30 23:10:10",
+    "model": "llama-3.3-70b-versatile",
+    "num_queries": 10
+  },
+  "query_results": [
+    {
+      "query": "What are the main findings or conclusions of this document?",
+      "category": "summary",
+      "top_k": 3,
+      "answer": "The main findings of this document are the development of a validated machine learning framework that integrates multi-omics data to predict a patient's health outcome, a deep understanding of how cancer develops and spreads at the molecular level, and the identification of key biological pathways involved. The document also proposes a comprehensive approach to cancer biomarker discovery using multi-omics integration, which improves biomarker discovery and enhances precision oncology. Additionally, the document highlights the importance of combining different omics layers, such as genomics, proteomics, and metabolomics, to uncover hidden cancer pathways and improve predictions for cancer outcomes.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.559793
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.5242553
+        }
+      ],
+      "query_time": 1.8303048610687256,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What methodology was used in this research?",
+      "category": "methodology",
+      "top_k": 3,
+      "answer": "The methodology used in this research involved several steps: \n\n1. Data Collection & Preprocessing: This included downloading genomic, proteomic, and metabolomic data from public databases, performing quality checks, normalizing data, and aligning samples across datasets.\n\n2. Feature Selection & Dimensionality Reduction: This step involved filtering for the most variable features (genes, proteins) and reducing data noise.\n\n3. Multi-Omics Integration: The data was combined using two strategies - early fusion (merging datasets) and Graph Neural Networks (GNN).\n\nThese steps were followed by training machine learning models.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5927314
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.52486163
+        }
+      ],
+      "query_time": 1.1907880306243896,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What are the key challenges mentioned in the document?",
+      "category": "challenges",
+      "top_k": 3,
+      "answer": "Challenges encountered are mentioned, and recommendations for future research are to be provided in the comprehensive final report. Additionally, a review of multi-omics technology shows both potential and challenges, as mentioned in the literature review section, specifically referencing Hasin et al. [4].",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.550038
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.45887482
+        }
+      ],
+      "query_time": 0.8802318572998047,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "How does this research compare to previous work in the field?",
+      "category": "comparison",
+      "top_k": 3,
+      "answer": "This research builds upon previous work in the field by integrating multi-omics data to improve biomarker discovery and precision oncology. It combines genomic, proteomic, and metabolomic data, which is an advancement over traditional single-omics approaches. The literature review highlights key studies, such as those by Weinstein et al., Mertins et al., Subramanian et al., Hasin et al., and Huang et al., that have laid the foundation for multi-omics research. The current research takes a step further by proposing a machine learning framework that integrates these omics layers to identify cancer biomarkers, which is a novel approach compared to earlier studies. Additionally, the use of early fusion and Graph Neural Networks (GNN) for multi-omics integration is a distinct methodological contribution. Overall, this research aims to enhance the understanding of cancer development and spread at the molecular level, and its expected results, such as a validated machine learning framework and identification of key biological pathways, demonstrate its potential to advance the field beyond existing knowledge.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5758557
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.53028154
+        }
+      ],
+      "query_time": 1.4868314266204834,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What future work is suggested in the document?",
+      "category": "future_work",
+      "top_k": 3,
+      "answer": "Recommendations for future research are suggested in the document as part of a comprehensive final report, which will summarize methodologies, experimental results, challenges encountered.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5537894
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.49098477
+        }
+      ],
+      "query_time": 0.7211501598358154,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What are the limitations of this study?",
+      "category": "limitations",
+      "top_k": 3,
+      "answer": "The limitations of this study are not explicitly stated, but potential limitations can be inferred. One limitation is the reliance on public databases for data collection, which may introduce biases or inconsistencies in the data. Additionally, the study's focus on integrating genomic, proteomic, and metabolomic data may overlook other important molecular layers. The use of two specific strategies for multi-omics integration, early fusion and Graph Neural Networks, may not be exhaustive, and other methods may yield different results. Furthermore, the study's success is contingent upon the quality of the data and the effectiveness of the feature selection and dimensionality reduction techniques, which can be prone to error. The study also appears to be focused on developing a machine learning framework, which may require significant computational resources and expertise, potentially limiting its accessibility and generalizability.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5900854
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.4903385
+        }
+      ],
+      "query_time": 1.5236141681671143,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What datasets were used in this research?",
+      "category": "datasets",
+      "top_k": 3,
+      "answer": "Genomic, proteomic, and metabolomic data were downloaded from public databases.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.60533893
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.57484853
+        }
+      ],
+      "query_time": 0.709639310836792,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "Who are the main authors or researchers cited?",
+      "category": "citations",
+      "top_k": 3,
+      "answer": "Weinstein, Mertins, Subramanian, Hasin, and Huang are the main authors or researchers cited.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.5038727
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5001353
+        }
+      ],
+      "query_time": 0.8269815444946289,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What theoretical framework is used in this research?",
+      "category": "theory",
+      "top_k": 3,
+      "answer": "A machine learning framework is used in this research, specifically one that integrates multi-omics data to predict a patient's health outcome.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.58109564
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.5061809
+        }
+      ],
+      "query_time": 0.8161303997039795,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What practical applications are discussed in the document?",
+      "category": "applications",
+      "top_k": 3,
+      "answer": "The practical applications discussed include training machine learning models to evaluate survival data, identifying key biological pathways, and proposing experimental validation. Additionally, the development of a validated machine learning framework is expected to integrate multi-omics data for predicting patient health outcomes, which can enhance precision oncology and improve biomarker discovery.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.52760375
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.43617257
+        }
+      ],
+      "query_time": 0.9939374923706055,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What are the main findings or conclusions of this document?",
+      "category": "summary",
+      "top_k": 5,
+      "answer": "The main findings of this document are the development of a validated machine learning framework that integrates multi-omics data to predict a patient's health outcome, a deep understanding of how cancer develops and spreads at the molecular level, and the identification of key biological pathways involved. The document also proposes a comprehensive approach to cancer biomarker discovery using multi-omics integration, which improves biomarker discovery and enhances precision oncology. Additionally, the document highlights the importance of combining different omics layers, such as genomics, proteomics, and metabolomics, to uncover hidden cancer pathways and improve predictions for cancer outcomes.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.559793
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.5242553
+        }
+      ],
+      "query_time": 1.0445916652679443,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What methodology was used in this research?",
+      "category": "methodology",
+      "top_k": 5,
+      "answer": "The methodology used in this research involved several steps: \n\n1. Data Collection & Preprocessing: This included downloading genomic, proteomic, and metabolomic data from public databases, performing quality checks, normalizing data, and aligning samples across datasets.\n\n2. Feature Selection & Dimensionality Reduction: This step involved filtering for the most variable features (genes, proteins) and reducing data noise.\n\n3. Multi-Omics Integration: The data was combined using two strategies - early fusion (merging datasets) and Graph Neural Networks (GNN).\n\nThese steps were followed by model training.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5927314
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.52486163
+        }
+      ],
+      "query_time": 1.1842670440673828,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What are the key challenges mentioned in the document?",
+      "category": "challenges",
+      "top_k": 5,
+      "answer": "The key challenges mentioned are related to integrating multi-omics data, as highlighted by Hasin et al., which shows both the potential and challenges of multi-omics technology. Additionally, the process of feature selection, dimensionality reduction, and combining data from different omics layers can be complex and noisy, requiring careful quality checks, normalization, and alignment of samples across datasets.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.550038
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.45887482
+        }
+      ],
+      "query_time": 0.9656698703765869,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "How does this research compare to previous work in the field?",
+      "category": "comparison",
+      "top_k": 5,
+      "answer": "This research builds upon previous work in the field by integrating multi-omics data to improve biomarker discovery and precision oncology. It combines the findings of earlier studies, such as those by Weinstein et al., Mertins et al., Subramanian et al., Hasin et al., and Huang et al., which laid the groundwork for multi-omics research and demonstrated the potential of combining different omics layers to uncover hidden cancer pathways and improve predictions for cancer outcomes. The current research takes a step further by proposing a machine learning framework that integrates genomic, proteomic, and metabolomic data to identify cancer biomarkers, thereby enhancing the understanding of cancer development and spread at the molecular level.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5758557
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.53028154
+        }
+      ],
+      "query_time": 1.2773017883300781,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What future work is suggested in the document?",
+      "category": "future_work",
+      "top_k": 5,
+      "answer": "Recommendations for future research are suggested in the document as part of a comprehensive final report, which will summarize methodologies, experimental results, challenges encountered.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5537894
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.49098477
+        }
+      ],
+      "query_time": 6.5033464431762695,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What are the limitations of this study?",
+      "category": "limitations",
+      "top_k": 5,
+      "answer": "The limitations of this study are not explicitly stated, but potential challenges can be inferred from the methodology and literature review. For instance, the integration of multi-omics data may be hindered by the quality and consistency of the datasets, which could lead to noise and biases in the analysis. Additionally, the feature selection and dimensionality reduction steps may inadvertently filter out important variables, potentially affecting the accuracy of the results. The use of two strategies for multi-omics integration, early fusion and Graph Neural Networks, may also introduce complexities and require careful evaluation to determine the most effective approach. Furthermore, the study's reliance on public databases for data collection may limit the generalizability of the findings to specific populations or cancer types. The study also mentions that a review of multi-omics technology showed both potential and challenges, implying that the field is still evolving and may pose difficulties for the research.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5900854
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.4903385
+        }
+      ],
+      "query_time": 1.8449554443359375,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What datasets were used in this research?",
+      "category": "datasets",
+      "top_k": 5,
+      "answer": "Genomic, proteomic, and metabolomic data were downloaded from public databases.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.60533893
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.57484853
+        }
+      ],
+      "query_time": 0.7177016735076904,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "Who are the main authors or researchers cited?",
+      "category": "citations",
+      "top_k": 5,
+      "answer": "Weinstein, Mertins, Subramanian, Hasin, and Huang are the main authors or researchers cited.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.5038727
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5001353
+        }
+      ],
+      "query_time": 0.9109277725219727,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What theoretical framework is used in this research?",
+      "category": "theory",
+      "top_k": 5,
+      "answer": "A machine learning framework is used in this research, specifically one that integrates multi-omics data to predict a patient's health outcome.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.58109564
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.5061809
+        }
+      ],
+      "query_time": 0.8414337635040283,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What practical applications are discussed in the document?",
+      "category": "applications",
+      "top_k": 5,
+      "answer": "The practical applications discussed include training machine learning models to evaluate survival data, identifying key biological pathways for experimental validation, and developing a validated machine learning framework to predict patient health outcomes by integrating multi-omics data. Additionally, the application of multi-omics integration to improve biomarker discovery and enhance precision oncology is also mentioned.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.52760375
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.43617257
+        }
+      ],
+      "query_time": 5.760407447814941,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What are the main findings or conclusions of this document?",
+      "category": "summary",
+      "top_k": 7,
+      "answer": "The main findings of this document are the development of a validated machine learning framework that integrates multi-omics data to predict a patient's health outcome, a deep understanding of how cancer develops and spreads at the molecular level, and the identification of key biological pathways involved. The document also proposes a comprehensive approach to cancer biomarker discovery using multi-omics integration, which improves biomarker discovery and enhances precision oncology. Additionally, the document highlights the importance of combining different omics layers, such as genomics, proteomics, and metabolomics, to uncover hidden cancer pathways and improve predictions for cancer outcomes.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.559793
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.5242553
+        }
+      ],
+      "query_time": 2.0950047969818115,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What methodology was used in this research?",
+      "category": "methodology",
+      "top_k": 7,
+      "answer": "The methodology used in this research involved several steps: \n\n1. Data Collection & Preprocessing: This included downloading genomic, proteomic, and metabolomic data from public databases, performing quality checks, normalizing data, and aligning samples across datasets.\n\n2. Feature Selection & Dimensionality Reduction: The researchers filtered for the most variable features (genes, proteins) and reduced data noise.\n\n3. Multi-Omics Integration: They combined data using two strategies: early fusion (merge datasets) and Graph Neural Networks (GNN).\n\nThese steps were part of the methodology used to integrate multi-omics data for cancer biomarker discovery.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5927314
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.52486163
+        }
+      ],
+      "query_time": 1.9897546768188477,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What are the key challenges mentioned in the document?",
+      "category": "challenges",
+      "top_k": 7,
+      "answer": "The key challenges mentioned are related to integrating multi-omics data, as highlighted by Hasin et al., which shows both the potential and challenges of multi-omics technology. Additionally, the comprehensive final report is expected to summarize the challenges encountered during the research.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.550038
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.45887482
+        }
+      ],
+      "query_time": 4.557615756988525,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "How does this research compare to previous work in the field?",
+      "category": "comparison",
+      "top_k": 7,
+      "answer": "This research builds upon previous work in the field by integrating multi-omics data to improve biomarker discovery and precision oncology. It combines genomic, proteomic, and metabolomic data, which is an advancement over traditional single-omics approaches. The literature review highlights key studies, such as those by Weinstein et al., Mertins et al., Subramanian et al., Hasin et al., and Huang et al., that have laid the foundation for multi-omics research. The current research takes a step further by proposing a machine learning framework that integrates these omics layers to identify cancer biomarkers, which is a more comprehensive approach than earlier studies. Additionally, the use of early fusion and Graph Neural Networks (GNN) for multi-omics integration is a novel aspect of this research, distinguishing it from previous work.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5758557
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.53028154
+        }
+      ],
+      "query_time": 4.713217496871948,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What future work is suggested in the document?",
+      "category": "future_work",
+      "top_k": 7,
+      "answer": "The document suggests that future work should focus on experimental validation of the identified key biological pathways and further research based on the comprehensive final report's recommendations.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5537894
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.49098477
+        }
+      ],
+      "query_time": 1.7397029399871826,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What are the limitations of this study?",
+      "category": "limitations",
+      "top_k": 7,
+      "answer": "The limitations of this study are not explicitly stated, but potential challenges can be inferred from the methodology and literature review. For instance, the integration of multi-omics data may be hindered by the quality and consistency of the datasets, which could lead to noise and variability in the results. Additionally, the feature selection and dimensionality reduction steps may inadvertently filter out important information, potentially affecting the accuracy of the model. The use of two strategies for multi-omics integration, early fusion and Graph Neural Networks, may also introduce complexity and require careful evaluation to determine the most effective approach. Furthermore, the reliance on public databases for data collection may limit the study's ability to capture rare or newly discovered cancer biomarkers. Overall, the study's limitations may be related to data quality, methodological choices, and the potential for omitted variable bias.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5900854
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.4903385
+        }
+      ],
+      "query_time": 1.329134225845337,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What datasets were used in this research?",
+      "category": "datasets",
+      "top_k": 7,
+      "answer": "Genomic, proteomic, and metabolomic data were downloaded from public databases.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.60533893
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.57484853
+        }
+      ],
+      "query_time": 0.8191606998443604,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "Who are the main authors or researchers cited?",
+      "category": "citations",
+      "top_k": 7,
+      "answer": "Weinstein, Mertins, Subramanian, Hasin, and Huang are the main authors or researchers cited.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.5038727
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5001353
+        }
+      ],
+      "query_time": 0.9528896808624268,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What theoretical framework is used in this research?",
+      "category": "theory",
+      "top_k": 7,
+      "answer": "A machine learning framework is used in this research, specifically one that integrates multi-omics data to predict a patient's health outcome.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.58109564
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.5061809
+        }
+      ],
+      "query_time": 0.7156217098236084,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What practical applications are discussed in the document?",
+      "category": "applications",
+      "top_k": 7,
+      "answer": "The practical applications discussed include training machine learning models to evaluate survival data, identifying key biological pathways for experimental validation, and developing a validated machine learning framework to predict patient health outcomes by integrating multi-omics data. Additionally, the application of multi-omics integration to improve biomarker discovery and enhance precision oncology is also mentioned.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.52760375
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.43617257
+        }
+      ],
+      "query_time": 15.71576476097107,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What are the main findings or conclusions of this document?",
+      "category": "summary",
+      "top_k": 10,
+      "answer": "The main findings of this document are the development of a validated machine learning framework that integrates multi-omics data to predict a patient's health outcome, a deep understanding of how cancer develops and spreads at the molecular level, and the identification of key biological pathways involved. The document also proposes a comprehensive approach to cancer biomarker discovery using multi-omics integration, which improves biomarker discovery and enhances precision oncology. Additionally, the document highlights the importance of combining different omics layers, such as genomics, proteomics, and metabolomics, to uncover hidden cancer pathways and improve predictions for cancer outcomes.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.559793
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.5242553
+        }
+      ],
+      "query_time": 1.7587320804595947,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What methodology was used in this research?",
+      "category": "methodology",
+      "top_k": 10,
+      "answer": "The methodology used in this research involved several steps: \n\n1. Data Collection & Preprocessing: This included downloading genomic, proteomic, and metabolomic data from public databases, performing quality checks, normalizing data, and aligning samples across datasets.\n\n2. Feature Selection & Dimensionality Reduction: This step involved filtering for the most variable features (genes, proteins) and reducing data noise.\n\n3. Multi-Omics Integration: The data was combined using two strategies - early fusion (merging datasets) and Graph Neural Networks (GNN).\n\nThese steps were followed by training machine learning models.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5927314
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.52486163
+        }
+      ],
+      "query_time": 1.1220178604125977,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What are the key challenges mentioned in the document?",
+      "category": "challenges",
+      "top_k": 10,
+      "answer": "Challenges encountered are mentioned, and recommendations for future research are to be provided in the comprehensive final report. Additionally, a review of multi-omics technology is mentioned, showing both potential and challenges, as per the literature review section.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.550038
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.45887482
+        }
+      ],
+      "query_time": 0.9195196628570557,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "How does this research compare to previous work in the field?",
+      "category": "comparison",
+      "top_k": 10,
+      "answer": "This research builds upon previous work in the field by integrating multi-omics data to improve biomarker discovery and precision oncology. It combines genomic, proteomic, and metabolomic data, which is an advancement over traditional single-omics approaches. The literature review highlights key studies, such as those by Weinstein et al., Mertins et al., Subramanian et al., Hasin et al., and Huang et al., that have laid the foundation for multi-omics research. The current research takes a step further by proposing a machine learning framework that integrates these omics layers to identify cancer biomarkers, which is a novel approach compared to earlier studies. Additionally, the use of early fusion and Graph Neural Networks (GNN) for multi-omics integration is a distinct methodological contribution. Overall, this research aims to enhance the understanding of cancer development and spread at the molecular level, and its expected results, such as a validated machine learning framework and identification of key biological pathways, demonstrate its potential to advance the field beyond existing knowledge.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5758557
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.53028154
+        }
+      ],
+      "query_time": 1.541029453277588,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What future work is suggested in the document?",
+      "category": "future_work",
+      "top_k": 10,
+      "answer": "Recommendations for future research are suggested in the comprehensive final report.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5537894
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.49098477
+        }
+      ],
+      "query_time": 0.7219622135162354,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What are the limitations of this study?",
+      "category": "limitations",
+      "top_k": 10,
+      "answer": "The limitations of this study are not explicitly stated, but potential limitations can be inferred. One limitation could be the reliance on public databases for data collection, which may have variability in data quality and consistency. Another limitation might be the challenge of integrating multi-omics data, which can be complex and noisy, potentially leading to biased results. Additionally, the study's focus on a specific type of cancer or patient population may limit the generalizability of the findings to other types of cancer or populations. Furthermore, the use of machine learning models and Graph Neural Networks may require large amounts of data and computational resources, which could be a limitation for smaller-scale studies. The study's methodology, such as the feature selection and dimensionality reduction techniques, may also introduce limitations, such as the potential loss of important information or the introduction of bias. Overall, the study's limitations may be related to data quality, methodology, and generalizability.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5900854
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.4903385
+        }
+      ],
+      "query_time": 1.7328472137451172,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What datasets were used in this research?",
+      "category": "datasets",
+      "top_k": 10,
+      "answer": "Genomic, proteomic, and metabolomic data were downloaded from public databases.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.60533893
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.57484853
+        }
+      ],
+      "query_time": 0.8129515647888184,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "Who are the main authors or researchers cited?",
+      "category": "citations",
+      "top_k": 10,
+      "answer": "Weinstein, Mertins, Subramanian, Hasin, and Huang are the main authors or researchers cited.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.5038727
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.5001353
+        }
+      ],
+      "query_time": 0.9027485847473145,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What theoretical framework is used in this research?",
+      "category": "theory",
+      "top_k": 10,
+      "answer": "A machine learning framework is used in this research, specifically one that integrates multi-omics data to predict a patient's health outcome.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.58109564
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.5061809
+        }
+      ],
+      "query_time": 0.7536566257476807,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    },
+    {
+      "query": "What practical applications are discussed in the document?",
+      "category": "applications",
+      "top_k": 10,
+      "answer": "The practical applications discussed include training machine learning models to evaluate survival data, identifying key biological pathways for experimental validation, and developing a validated machine learning framework to predict patient health outcomes by integrating multi-omics data. Additionally, the application of multi-omics integration to improve biomarker discovery and enhance precision oncology is also mentioned.",
+      "sources": [
+        {
+          "filename": "Unknown",
+          "text": "# Evaluation:\n\n- Train machine learning models, evaluate with survival data, and interpret results.\n\n# Pathway Enrichment & Biological Validation:\n\n- Identify key biological pathways and propose exper...",
+          "score": 0.52760375
+        },
+        {
+          "filename": "Unknown",
+          "text": "# Multi-Omics Cancer Biomarker Discovery\n\n# by\n\nQaisar Mateen\n\nUsman Faisal\n\nSami Khokhar\n\n# Introduction Cancer Discovery\n\n- Cancer is a complex interplay of genetic mutations, protein-level changes,...",
+          "score": 0.43617257
+        }
+      ],
+      "query_time": 0.8665385246276855,
+      "num_sources_returned": 2,
+      "quality_metrics": {
+        "error": "Completions.create() missing 1 required keyword-only argument: 'model'"
+      }
+    }
+  ],
+  "summary_metrics": {
+    "avg_query_time": 1.9447520673274994,
+    "median_query_time": 1.083304762840271,
+    "avg_num_sources": 2.0,
+    "avg_score_by_top_k": {
+      "3": {},
+      "5": {},
+      "7": {},
+      "10": {}
+    },
+    "avg_score_by_category": {
+      "summary": {},
+      "methodology": {},
+      "challenges": {},
+      "comparison": {},
+      "future_work": {},
+      "limitations": {},
+      "datasets": {},
+      "citations": {},
+      "theory": {},
+      "applications": {}
+    }
+  }
+}

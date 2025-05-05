@@ -725,7 +725,9 @@ def main():
     parser.add_argument("--test-queries", type=str, help="Path to test queries JSON file")
     parser.add_argument("--output-dir", type=str, default="./storage/evaluation", help="Directory to store results")
     parser.add_argument("--top-k", type=str, default="3,5", help="Comma-separated list of top-k values to test")
-    parser.add_argument("--model", type=str, default="llama-3.3-70b-versatile", help="Model to use for evaluation")
+    parser.add_argument("--model", type=str, default="llama-3.1-8b-instant", help="Model to use for evaluation")
+    parser.add_argument("--fallback-model", type=str, default="llama-3-8b-8192", help="Fallback model to use if primary hits rate limits")
+    parser.add_argument("--max-queries", type=int, help="Maximum number of queries to evaluate (for faster results)")
     parser.add_argument("--data-dir", type=str, default="./data", help="Directory containing documents to index")
     
     args = parser.parse_args()
