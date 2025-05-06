@@ -76,7 +76,7 @@ def stream_Chat(chat_completion) -> Generator[tuple, None, None]:
             current_thinking = None
         
         # Add a small delay for slower generation
-        time.sleep(0.05)
+        time.sleep(0.01)
         
         # Only yield if content has changed to avoid redundant updates
         if (current_thinking != previous_thinking) or (current_content != previous_content):

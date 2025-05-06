@@ -446,7 +446,7 @@ Optimized query:"""
                     
                     # Extract the optimized query
                     optimized_query = optimized_query_response.choices[0].message.content.strip()
-                    
+                    print("\n\n\nOptimized Query: ", optimized_query, "\n\n") # Fixed invalid escape sequence
                     # Update thinking with the optimized query
                     # Original query: "{rag_query}"
                     # Optimized query: "{optimized_query}"
@@ -480,7 +480,7 @@ Failed to optimize query due to error continuing with original query.
                 # Get sources and context from RAG result
                 sources = rag_result.get("sources", [])
                 rag_answer = rag_result.get("answer", "")
-                print("\n\n\n\n\\RAG Result: ", rag_answer) # Fixed invalid escape sequence
+                # print("\n\n\n\n\\RAG Result: ", rag_answer) # Fixed invalid escape sequence
                 
                 # Prepare context from retrieved documents
                 context_parts = []
