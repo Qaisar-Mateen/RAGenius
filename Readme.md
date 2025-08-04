@@ -1,8 +1,5 @@
 > Lecture Notes Q&A Bot: A Retrieval-Augmented Generation Approach for
 > Enhanced Student Support
->
-> Qaisar Mateen, Usman Faisal, Abdullah Dar Department of Computer
-> Science, FAST NUCES, Lahore, Pakistan
 
 Abstract—Effective learning in higher education often requires students
 to navigate and synthesize information from extensive and heterogeneous
@@ -137,7 +134,9 @@ D. Generation & Streaming
 > interim reasoning and the final response.
 
 <img src="./wsldeyi5.png"
-style="width:3.48695in;height:1.93236in" />The Streamlit interface in
+style="width:3.48695in;height:1.93236in" />
+
+The Streamlit interface in
 app.py orchestrates file uploads, pipeline initialization
 (process_and_index_files(), initialize_pipeline()), and interactive
 streaming of answers.
@@ -285,24 +284,3 @@ studies in diverse academic courses. We also plan to evaluate
 alternative vector backends (e.g., FAISS, Pinecone) for performance
 benchmarking and to implement continual learning pipelines that update
 the index with new course materials in real time.
-
-> REFERENCES
-
-\[1\] Patrick Lewis, et al. ”Retrieval-Augmented Generation for
-Knowledge-Intensive NLP Tasks.” NeurIPS, 2020.
-
-\[2\] Zhuyun Jiang, et al. ”Active Retrieval-Augmented Generation
-(FLARE).” ACL, 2023.
-
-\[3\] Edge, et al. ”GraphRAG: From Local to Global” EMNLP, 2024.
-
-\[4\] Anjali Gupta, et al. ”A Comprehensive Survey of
-Retrieval-Augmented Generation.” 2024.
-
-\[5\] Sam Bergman, et al. ”Leveraging Approximate Caching” 2025. \[6\]
-Laurent Mombaerts, et al. ”Meta Knowledge for Retrieval” 2024.
-
-\[7\] Xiaohan Han, et al. ”A Comprehensive Survey on Vector Database”
-2023. \[8\] Emily Smith, et al. ”RAGAS: Automated Evaluation of” 2024.
-
-\[9\] Li Chen, et al. ”Benchmarking Large Language Models in RAG.” 2024.
